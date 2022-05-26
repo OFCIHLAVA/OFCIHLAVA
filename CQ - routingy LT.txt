@@ -1,0 +1,52 @@
+                                                                                                                                                                                                                                               viewpoint all_tables;
+
+define
+  number LToperation = if routing_operation:task = "20553000" then 7   --paint
+  else if routing_operation:task = "20552000" then 5   --WJG
+  else if routing_operation:task = "20557000" then 5   --Black
+  else if routing_operation:task = "20557001" then 5  --DPA Black
+  else if routing_operation:task = "20557100" then 10  --cobalt
+  else if routing_operation:task = "20557101" then 10  --DPA Cobalt
+  else if routing_operation:task = "20558000" then 5   --saten
+  else if routing_operation:task = "20558001" then 7   --DPA saten
+  else if routing_operation:task = "20559000" then 15  --special -pasivace, alodine
+  else if routing_operation:task begins with "20415" then 2  --CNC
+  else if routing_operation:task = "20100000" then 5    --router
+  else if routing_operation:task = "20150000" then 5    --decor
+  else if routing_operation:task = "20430001" then 2    --lepeni
+  else if routing_operation:task = "20430000" and cycle_time > 100 then 5  --door assy, panel assy, box assy
+  else if routing_operation:task one of -- zbyvajici platne tasky MS
+        "20110000", "20411000", "20412000", "20413000", "20414000", "20415000",
+        "20415001", "20415003", "20415004", "20415005", "20416000",
+        "20417000", "20418000", "20420000", "20420001", "20420002",
+        "20420003", "20554000", "20557003", "20558002", "20558005", "20740000", "20430000", "20411001", "20423000", "20430002", "20431000", "20280000", "20159002", "20159000", "20229001"
+
+
+ then 1
+  else 2000;
+          
+where
+  --#routing_operation:manufactured_item not contains "MP"
+
+  ( routing_operation:effective_date_dz <=
+    todaysdate )
+  and ( routing_operation:expiry_date_dz >=
+    todaysdate )
+
+sum/domain="routing_operation"/hold = "hf_routing_operations_cal"
+  LToperation
+
+by
+  routing_operation:manufactured_item/keyelement
+  --#routing_operation:operation
+  --#routing_operation:manufactured_item[1,9]/duplicates
+  --#routing_operation:manufactured_item [10,47]/duplicates
+  --#routing_operation:routing
+  --#productin_orders_routing_opra:rework_order
+  --#productin_orders_routing_opra:rework_order_text
+  --#routing_operation:move_time
+  --#routing_operation:work_center
+  --#routing_operation:task
+  --#routing_operation:avg_setup
+  --#routing_operation:cycle_time
+  --#routing_operation:operation_text_txta_text

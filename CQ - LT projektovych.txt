@@ -1,0 +1,664 @@
+viewpoint all_tables;
+
+define
+  file items_vrchol = access items,
+    set items:item = bill_of_material:manufactured_item,
+    one to many;
+  
+  file pur_data_vrchol = access item_purchase_data,
+    set item_purchase_data:item = bill_of_material:manufactured_item,
+    one to many;
+  
+  file safety_stock_vrchol = access items_ordering,
+    set items_ordering:item = bill_of_material:manufactured_item,
+    one to many;
+  
+  file routing_lt_vrchol = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bill_of_material:manufactured_item,
+    one to one;
+  
+  file routing_std_kod_lt_vrchol = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bill_of_material:manufactured_item,
+    one to one;
+  
+  file standard_routing_kod_vrchol = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_vrchol:standard_routing_code,
+    one to one;
+  
+  file items_lvl_1 = access items,
+    set items:item = bill_of_material:item,
+    one to many;
+  
+  file pur_data_lvl_1 = access item_purchase_data,
+    set item_purchase_data:item = bill_of_material:item,
+    one to many;
+  
+  file safety_stock_lvl_1 = access items_ordering,
+    set items_ordering:item = bill_of_material:item,
+    one to many;
+  
+  file routing_lt_lvl_1 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bill_of_material:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_1 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bill_of_material:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_1 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_1:standard_routing_code,
+    one to one;
+  
+  file bom_level_2 = access bill_of_material,
+    set bill_of_material:manufactured_item = bill_of_material:item,
+    one to many;
+  
+  file items_lvl_2 = access items,
+    set items:item = bom_level_2:item,
+    one to many;
+  
+  file pur_data_lvl_2 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_2:item,
+    one to many;
+  
+  file safety_stock_lvl_2 = access items_ordering,
+    set items_ordering:item = bom_level_2:item,
+    one to many;
+  
+  file routing_lt_lvl_2 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_2:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_2 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_2:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_2 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_2:standard_routing_code,
+    one to one;
+  
+  file bom_level_3 = access bill_of_material,
+    set bill_of_material:manufactured_item = bom_level_2:item,
+    one to many;
+  
+  file items_lvl_3 = access items,
+    set items:item = bom_level_3:item,
+    one to many;
+  
+  file pur_data_lvl_3 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_3:item,
+    one to many;
+  
+  file safety_stock_lvl_3 = access items_ordering,
+    set items_ordering:item = bom_level_3:item,
+    one to many;
+  
+  file routing_lt_lvl_3 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_3:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_3 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_3:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_3 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_3:standard_routing_code,
+    one to one;
+  
+  file bom_level_4 = access bill_of_material,
+    set bill_of_material:manufactured_item = bom_level_3:item,
+    one to many;
+  
+  file items_lvl_4 = access items,
+    set items:item = bom_level_4:item,
+    one to many;
+  
+  file pur_data_lvl_4 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_4:item,
+    one to many;
+  
+  file safety_stock_lvl_4 = access items_ordering,
+    set items_ordering:item = bom_level_4:item,
+    one to many;
+  
+  file routing_lt_lvl_4 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_4:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_4 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_4:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_4 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_4:standard_routing_code,
+    one to one;
+  
+  file bom_level_5 = access bill_of_material,
+    set bill_of_material:manufactured_item = bom_level_4:item,
+    one to many;
+  
+  file items_lvl_5 = access items,
+    set items:item = bom_level_5:item,
+    one to many;
+  
+  file pur_data_lvl_5 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_5:item,
+    one to many;
+  
+  file safety_stock_lvl_5 = access items_ordering,
+    set items_ordering:item = bom_level_5:item,
+    one to many;
+  
+  file routing_lt_lvl_5 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_5:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_5 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_5:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_5 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_5:standard_routing_code,
+    one to one;
+  
+  file bom_level_6 = access bill_of_material,
+    set bill_of_material:manufactured_item = bom_level_5:item,
+    one to many;
+  
+  file items_lvl_6 = access items,
+    set items:item = bom_level_6:item,
+    one to many;
+  
+  file pur_data_lvl_6 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_6:item,
+    one to many;
+  
+  file safety_stock_lvl_6 = access items_ordering,
+    set items_ordering:item = bom_level_6:item,
+    one to many;
+  
+  file routing_lt_lvl_6 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_6:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_6 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_6:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_6 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_6:standard_routing_code,
+    one to one;
+  
+  file bom_level_7 = access bill_of_material,
+    set bill_of_material:manufactured_item = bom_level_6:item,
+    one to many;
+  
+  file items_lvl_7 = access items,
+    set items:item = bom_level_7:item,
+    one to many;
+  
+  file pur_data_lvl_7 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_7:item,
+    one to many;
+  
+  file safety_stock_lvl_7 = access items_ordering,
+    set items_ordering:item = bom_level_7:item,
+    one to many;
+  
+  file routing_lt_lvl_7 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_7:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_7 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_7:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_7 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_7:standard_routing_code,
+    one to one;
+  
+  file bom_level_8 = access bill_of_material,
+    set bill_of_material:manufactured_item = bom_level_7:item,
+    one to many;
+  
+  file items_lvl_8 = access items,
+    set items:item = bom_level_8:item,
+    one to many;
+  
+  file pur_data_lvl_8 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_8:item,
+    one to many;
+  
+  file safety_stock_lvl_8 = access items_ordering,
+    set items_ordering:item = bom_level_8:item,
+    one to many;
+  
+  file routing_lt_lvl_8 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_8:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_8 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_8:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_8 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_8:standard_routing_code,
+    one to one;
+  
+  file bom_level_9 = access bill_of_material,
+    set bill_of_material:manufactured_item = bom_level_8:item,
+    one to many;
+  
+  file items_lvl_9 = access items,
+    set items:item = bom_level_9:item,
+    one to many;
+  
+  file pur_data_lvl_9 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_9:item,
+    one to many;
+  
+  file safety_stock_lvl_9 = access items_ordering,
+    set items_ordering:item = bom_level_9:item,
+    one to many;
+  
+  file routing_lt_lvl_9 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_9:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_9 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_9:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_9 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_9:standard_routing_code,
+    one to one;
+  
+  file bom_level_10 = access bill_of_material,
+    set bill_of_material:manufactured_item = bom_level_9:item,
+    one to many;
+  
+  file items_lvl_10 = access items,
+    set items:item = bom_level_10:item,
+    one to many;
+  
+  file pur_data_lvl_10 = access item_purchase_data,
+    set item_purchase_data:item = bom_level_10:item,
+    one to many;
+  
+  file safety_stock_lvl_10 = access items_ordering,
+    set items_ordering:item = bom_level_10:item,
+    one to many;
+  
+  file routing_lt_lvl_10 = access hf_routing_operations_cal,
+    set hf_routing_operations_cal:manufactured_item = bom_level_10:item,
+    one to one;
+  
+  file routing_std_kod_lt_lvl_10 = access routing_codes_by_item,
+    set routing_codes_by_item:manufactured_item = bom_level_10:item,
+    one to one;
+  
+  file standard_routing_kod_lvl_10 = access hf_std_routing_operations,
+    set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_10:standard_routing_code,
+    one to one;
+  
+
+-- Soubory kusovniku pro jednotlive levely
+-- Soubory Items pro MAN / PUR typ pro jednotlive levely  
+-- Soubory purchase dat pro PUR LT pro jednotlive levely  
+-- Soubory ordering data pro Safety stock pro jednotlive levely
+-- Soubory hf routingu pro Rouzing LT pro jednotlive levely
+-- Soubory hf  STD routingu kod pro Routing LT pro jednotlive levely
+-- Soubory hf  STD routingu LT pro Routing LT pro jednotlive levely
+where 
+  -- Vrchol k provereni
+  (
+  bill_of_material:manufactured_item [1,9] = "         "
+  or
+  bill_of_material:manufactured_item [1,9] = "PMP500000"
+  or
+  bill_of_material:manufactured_item begins with
+  "PMP51"
+  or
+  bill_of_material:manufactured_item begins with
+  "PMP52"
+  or
+  bill_of_material:manufactured_item begins with
+  "PMP53"
+  or
+  bill_of_material:manufactured_item begins with
+  "PMP54"
+  or
+  bill_of_material:manufactured_item begins with
+  "PMP55"
+  or
+  bill_of_material:manufactured_item begins with
+  "PMP56"
+  or
+  bill_of_material:manufactured_item begins with
+  "PMP57"
+   )
+  
+  and bill_of_material:manufactured_item [10,47] one of
+  
+"215562-2031"
+
+
+--and
+--(bom_level_10:expiry_date > todaysdate or bom_level_10:expiry_date = null)
+--and
+--  (bom_level_9:expiry_date > todaysdate or bom_level_9:expiry_date = null)
+--and
+--  (bom_level_8:expiry_date > todaysdate or bom_level_8:expiry_date = null)
+--and
+--  (bom_level_7:expiry_date > todaysdate or bom_level_7:expiry_date = null)
+--and
+--  (bom_level_6:expiry_date > todaysdate or bom_level_6:expiry_date = null)
+--and
+--  (bom_level_5:expiry_date > todaysdate or bom_level_5:expiry_date = null)
+--and
+--  (bom_level_4:expiry_date > todaysdate or bom_level_4:expiry_date = null)
+--and
+--  (bom_level_3:expiry_date > todaysdate or bom_level_3:expiry_date = null)
+--and
+--  (bom_level_2:expiry_date > todaysdate or bom_level_2:expiry_date = null)
+
+
+list/domain="bill_of_material"
+  --Vrchol:
+  "|"/duplicates -- Musi tu bzt hvezdicka aby to pak program spravne nacucnul
+  bill_of_material:manufactured_item/heading="vrchol"/duplicates 
+  "|"/duplicates
+  items_vrchol:description/duplicates
+  "|"/duplicates 
+  items_vrchol:item_type_text/heading="Item type vrchol"/duplicates 
+  "|"/duplicates 
+  "0"/heading="// WHS vrchol"/duplicates 
+  "|"/duplicates 
+  bill_of_material:expiry_date_dz/heading="//exdate vrchol"/duplicates 
+  "|"/duplicates 
+  pur_data_vrchol:supply_time/heading="//pur LT vrchol"/duplicates 
+  "|"/duplicates 
+  pur_data_vrchol:buy_from_business_partner/heading="//supplier vrchol"/duplicates
+  "|"/duplicates
+  pur_data_vrchol:buyer/heading="//nakupci vrchol"/duplicates
+  "|"/duplicates 
+  Safety_stock_vrchol:safety_stock/heading="//safety stock vrchol"/duplicates 
+  "|"/duplicates 
+  routing_LT_vrchol:ltoperation/heading="//routing LT vrchol"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_vrchol:ltoperation/heading="//STD routing LT vrchol"/duplicates 
+  "|"/duplicates 
+  "0"/heading="//PHANTOM? vrchol"/duplicates 
+  
+  
+  
+  --LVL 1:
+  "|"/duplicates 
+  bill_of_material:item/heading="// item lvl 1"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_1:search_key_i/heading="description lvl 1"/duplicates 
+  "|"/duplicates 
+  items_lvl_1:item_type_text/heading="Item type lvl 1"/duplicates 
+  "|"/duplicates 
+  bill_of_material:wareh/heading="//WHS lvl 1"/duplicates 
+  "|"/duplicates 
+  bill_of_material:expiry_date_dz/heading="//exdate lvl 1"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_1:supply_time/heading="//pur LT lvl 1"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_1:buy_from_business_partner/heading="//supplier lvl 1"/duplicates
+  "|"/duplicates
+  pur_data_lvl_1:buyer/heading="//nakupci lvl 1"/duplicates 
+  "|"/duplicates 
+  Safety_stock_lvl_1:safety_stock/heading="//safety stock lvl 1"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_1:ltoperation/heading="//routing LT lvl 1"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_1:ltoperation/heading="//STD routing LT lvl 1"/duplicates 
+  "|"/duplicates 
+  bill_of_material:phantom_text/heading="//PHANTOM? lvl 1"/duplicates 
+  
+  --LVL 2:
+  "|"/duplicates 
+  bom_level_2:item/heading="// item lvl 2"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_2:search_key_i/heading="description lvl 2"/duplicates 
+  "|"/duplicates  
+  items_lvl_2:item_type_text/heading="Item type lvl 2"/duplicates 
+  "|"/duplicates 
+  bom_level_2:wareh/heading="//WHS lvl 2"/duplicates 
+  "|"/duplicates 
+  bom_level_2:expiry_date_dz/heading="//exdate lvl 2"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_2:supply_time/heading="//pur LT lvl 2"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_2:buy_from_business_partner/heading="//supplier lvl 2"/duplicates
+  "|"/duplicates
+  pur_data_lvl_2:buyer/heading="//nakupci lvl 2"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_2:safety_stock/heading="//safety stock lvl 2"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_2:ltoperation/heading="//routing LT lvl 2"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_2:ltoperation/heading="//STD routing LT lvl 2"/duplicates 
+  "|"/duplicates 
+  bom_level_2:phantom_text/heading="// PHANTOM? lvl 2"/duplicates 
+  
+  --LVL 3:
+  "|"/duplicates 
+  bom_level_3:item/heading="// item lvl 3"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_3:search_key_i/heading="description lvl 3"/duplicates 
+  "|"/duplicates  
+  items_lvl_3:item_type_text/heading="Item type lvl 3"/duplicates 
+  "|"/duplicates 
+  bom_level_3:wareh/heading="//WHS lvl 3"/duplicates 
+  "|"/duplicates 
+  bom_level_3:expiry_date_dz/heading="//exdate lvl 3"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_3:supply_time/heading="//pur LT lvl 3"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_3:buy_from_business_partner/heading="//supplier lvl 3"/duplicates
+  "|"/duplicates
+  pur_data_lvl_3:buyer/heading="//nakupci lvl 3"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_3:safety_stock/heading="//safety stock lvl 3"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_3:ltoperation/heading="//routing LT lvl 3"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_3:ltoperation/heading="//STD routing LT lvl 3"/duplicates 
+  "|"/duplicates 
+  bom_level_3:phantom_text/heading="// PHANTOM? lvl 3"/duplicates 
+  
+  
+  --LVL 4:
+  "|"/duplicates 
+  bom_level_4:item/heading="// item lvl 4"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_4:search_key_i/heading="description lvl 4"/duplicates 
+  "|"/duplicates  
+  items_lvl_4:item_type_text/heading="Item type lvl 4"/duplicates 
+  "|"/duplicates 
+  bom_level_4:wareh/heading="//WHS lvl 4"/duplicates 
+  "|"/duplicates 
+  bom_level_4:expiry_date_dz/heading="//exdate lvl 4"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_4:supply_time/heading="//pur LT lvl 4"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_4:buy_from_business_partner/heading="//supplier lvl 4"/duplicates
+  "|"/duplicates
+  pur_data_lvl_4:buyer/heading="//nakupci lvl 4"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_4:safety_stock/heading="//safety stock lvl 4"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_4:ltoperation/heading="//routing LT lvl 4"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_4:ltoperation/heading="//STD routing LT lvl 4"/duplicates 
+  "|"/duplicates 
+  bom_level_4:phantom_text/heading="// PHANTOM? lvl 4"/duplicates 
+  
+  
+  --LVL 5:
+  "|"/duplicates 
+  bom_level_5:item/heading="// item lvl 5"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_5:search_key_i/heading="description lvl 5"/duplicates 
+  "|"/duplicates 
+  items_lvl_5:item_type_text/heading="Item type lvl 5"/duplicates 
+  "|"/duplicates 
+  bom_level_5:wareh/heading="//WHS lvl 5"/duplicates 
+  "|"/duplicates 
+  bom_level_5:expiry_date_dz/heading="//exdate lvl 5"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_5:supply_time/heading="//pur LT lvl 5"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_5:buy_from_business_partner/heading="//supplier lvl 5"/duplicates
+  "|"/duplicates
+  pur_data_lvl_5:buyer/heading="//nakupci lvl 5"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_5:safety_stock/heading="//safety stock lvl 5"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_5:ltoperation/heading="//routing LT lvl 5"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_5:ltoperation/heading="//STD routing LT lvl 5"/duplicates 
+  "|"/duplicates 
+  bom_level_5:phantom_text/heading="// PHANTOM? lvl 5"/duplicates 
+  
+  
+  --LVL 6:
+  "|"/duplicates 
+  bom_level_6:item/heading="// item lvl 6"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_6:search_key_i/heading="description lvl 6"/duplicates 
+  "|"/duplicates  
+  items_lvl_6:item_type_text/heading="Item type lvl 6"/duplicates 
+  "|"/duplicates 
+  bom_level_6:wareh/heading="//WHS lvl 6"/duplicates 
+  "|"/duplicates 
+  bom_level_6:expiry_date_dz/heading="//exdate lvl 6"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_6:supply_time/heading="//pur LT lvl 6"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_6:buy_from_business_partner/heading="//supplier lvl 6"/duplicates
+  "|"/duplicates
+  pur_data_lvl_6:buyer/heading="//nakupci lvl 6"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_6:safety_stock/heading="//safety stock lvl 6"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_6:ltoperation/heading="//routing LT lvl 6"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_6:ltoperation/heading="//STD routing LT lvl 6"/duplicates 
+  "|"/duplicates 
+  bom_level_6:phantom_text/heading="// PHANTOM? lvl 6"/duplicates 
+  
+  
+  --LVL 7:
+  "|"/duplicates 
+  bom_level_7:item/heading="// item lvl 7"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_7:search_key_i/heading="description lvl 7"/duplicates 
+  "|"/duplicates  
+  items_lvl_7:item_type_text/heading="Item type lvl 7"/duplicates 
+  "|"/duplicates 
+  bom_level_7:wareh/heading="//WHS lvl 7"/duplicates 
+  "|"/duplicates 
+  bom_level_7:expiry_date_dz/heading="//exdate lvl 7"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_7:supply_time/heading="//pur LT lvl 7"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_7:buy_from_business_partner/heading="//supplier lvl 7"/duplicates
+  "|"/duplicates
+  pur_data_lvl_7:buyer/heading="//nakupci lvl 7"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_7:safety_stock/heading="//safety stock lvl 7"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_7:ltoperation/heading="//routing LT lvl 7"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_7:ltoperation/heading="//STD routing LT lvl 7"/duplicates 
+  "|"/duplicates 
+  bom_level_7:phantom_text/heading="// PHANTOM? lvl 7"/duplicates 
+  
+  
+  --LVL 8:
+  "|"/duplicates 
+  bom_level_8:item/heading="// item lvl 8"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_8:search_key_i/heading="description lvl 8"/duplicates 
+  "|"/duplicates  
+  items_lvl_8:item_type_text/heading="Item type lvl 8"/duplicates 
+  "|"/duplicates 
+  bom_level_8:wareh/heading="//WHS lvl 8"/duplicates 
+  "|"/duplicates 
+  bom_level_8:expiry_date_dz/heading="//exdate lvl 8"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_8:supply_time/heading="//pur LT lvl 8"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_8:buy_from_business_partner/heading="//supplier lvl 8"/duplicates
+  "|"/duplicates
+  pur_data_lvl_8:buyer/heading="//nakupci lvl 8"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_8:safety_stock/heading="//safety stock lvl 8"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_8:ltoperation/heading="//routing LT lvl 8"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_8:ltoperation/heading="//STD routing LT lvl 8"/duplicates 
+  "|"/duplicates 
+  bom_level_8:phantom_text/heading="// PHANTOM? lvl 8"/duplicates 
+  
+  
+  --LVL 9:
+  "|"/duplicates 
+  bom_level_9:item/heading="// item lvl 9"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_9:search_key_i/heading="description lvl 9"/duplicates 
+  "|"/duplicates  
+  items_lvl_9:item_type_text/heading="Item type lvl 9"/duplicates 
+  "|"/duplicates 
+  bom_level_9:wareh/heading="//WHS lvl 9"/duplicates 
+  "|"/duplicates 
+  bom_level_9:expiry_date_dz/heading="//exdate lvl 9"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_9:supply_time/heading="//pur LT lvl 9"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_9:buy_from_business_partner/heading="//supplier lvl 9"/duplicates
+  "|"/duplicates
+  pur_data_lvl_9:buyer/heading="//nakupci lvl 9"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_9:safety_stock/heading="//safety stock lvl 9"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_9:ltoperation/heading="//routing LT lvl 9"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_9:ltoperation/heading="//STD routing LT lvl 9"/duplicates 
+  "|"/duplicates 
+  bom_level_9:phantom_text/heading="// PHANTOM? lvl 9"/duplicates 
+  
+  
+  --LVL 10:
+  "|"/duplicates 
+  bom_level_10:item/heading="// item lvl 10"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_10:search_key_i/heading="description lvl 10"/duplicates 
+  "|"/duplicates  
+  items_lvl_10:item_type_text/heading="Item type lvl 10"/duplicates 
+  "|"/duplicates 
+  bom_level_10:wareh/heading="//WHS lvl 10"/duplicates 
+  "|"/duplicates 
+  bom_level_10:expiry_date_dz/heading="//exdate lvl 10"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_10:supply_time/heading="//pur LT lvl 10"/duplicates 
+  "|"/duplicates 
+  pur_data_lvl_10:buy_from_business_partner/heading="//supplier lvl 10"/duplicates
+  "|"/duplicates
+  pur_data_lvl_10:buyer/heading="//nakupci lvl 10"/duplicates  
+  "|"/duplicates 
+  Safety_stock_lvl_10:safety_stock/heading="//safety stock lvl 10"/duplicates 
+  "|"/duplicates 
+  routing_LT_lvl_10:ltoperation/heading="//routing LT lvl 10"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_10:ltoperation/heading="//STD routing LT lvl 10"/duplicates 
+  "|"/duplicates 
+  bom_level_10:phantom_text/heading="// PHANTOM? lvl 10"/duplicates
+
+sorted by
+  bill_of_material:manufactured_item
+  bill_of_material:position
