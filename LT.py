@@ -1,8 +1,10 @@
 import KOMBO_funkce_kusovnik
 import os
 import time
+import openpyxl as excel
 
-file_to_process = "errors.txt"
+
+file_to_process = "report.txt"
 #file_to_process = "demo 1.txt"
 
 path_to_export = 'C:\\Users\\Ondrej.rott\\Documents\\Python\\Lead timy\\Exporty z LN\\' + str(file_to_process)
@@ -12,7 +14,7 @@ data_import = KOMBO_funkce_kusovnik.nacteni_dat(path_to_export) # Naceteni dat z
 kusovnik = KOMBO_funkce_kusovnik.vytvoreni_kusovniku(data_import) # Vezme itemy v kazde lince a udela z nich kusovnik po linkach a ulozi do listu kusovnik  vseho.
 # print(kusovnik)
 parametry = KOMBO_funkce_kusovnik.databaze_parametru(data_import) # Pro kazdou linku vezme itemy z linky a ulozi jejich hodnoty ex date, lt a ss jako dict do listu all parameters.
-print(parametry)
+# print(parametry)
 data_import.clear()
 
 pocet_linek_kusovniku = len(kusovnik)
@@ -30,6 +32,7 @@ vsechny_nakupovane_bez_puchase_lt = []
 vsechny_nakupovane_use_polozky = []
 vsechny_itemy_typ_error = []
 vrchol_k_zaplanovani = []
+vse_k_zaplanovani = []
 vrchol_chyby = []
 
 mode_set = False
@@ -60,6 +63,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
 
 # samotny program
     for line in kusovnik:
+        # print(f' RESENA LINKA: {line}')
         if pocet_linek_kusovniku != i+1: #Nejedna se o posledni linku.
             if line[0] == vrchol: #Pokracovani predchoziho vrcholu.
 
@@ -75,6 +79,8 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
                 if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
                     vrchol_k_zaplanovani.append(linka_k_zaplanovani)
+                if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                    vse_k_zaplanovani.append(linka_k_zaplanovani)
                 # Kusovnik k zaplanovani  
                 i+=1
                 ###
@@ -103,6 +109,8 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
                 if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
                     vrchol_k_zaplanovani.append(linka_k_zaplanovani)
+                if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                    vse_k_zaplanovani.append(linka_k_zaplanovani)
                 # Kusovnik k zaplanovani    
 
                 i+=1
@@ -121,6 +129,8 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
                 if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
                     vrchol_k_zaplanovani.append(linka_k_zaplanovani)
+                if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                    vse_k_zaplanovani.append(linka_k_zaplanovani)
                 # Kusovnik k zaplanovani   
                 i+=1
                 ###          
@@ -131,6 +141,8 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 for linka in vrchol_k_zaplanovani:
                     output_file.write(str(linka))
                     output_file.write('\n')
+
+                KOMBO_funkce_kusovnik.zaplanovani_do_excelu(vse_k_zaplanovani)
 
             else: # Novy vrchol.
                 vysledek.append(KOMBO_funkce_kusovnik.vysledek_itemu(nejdelsi_linka, parametry, vrchol, max_lt_itemu, chybejici_routingy_equals, vrchol_chyby))# Sestaveni nejdelsi linky soucasneho vrcholu a jejiho LT.            
@@ -157,6 +169,8 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
                 if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
                     vrchol_k_zaplanovani.append(linka_k_zaplanovani)
+                if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                    vse_k_zaplanovani.append(linka_k_zaplanovani)
                 # Kusovnik k zaplanovani     
                 i+=1
                 ###
@@ -166,7 +180,10 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
 
                 for linka in vrchol_k_zaplanovani:
                     output_file.write(str(linka))
-                    output_file.write('\n')  
+                    output_file.write('\n')
+                
+                KOMBO_funkce_kusovnik.zaplanovani_do_excelu(vse_k_zaplanovani)    
+
 output_file.close()
 
 print("\n")

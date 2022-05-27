@@ -1,5 +1,7 @@
 # Naceteni dat z txt soboru a rozdeleni na jednotlive linky kusovniku. Vysledek ulozen jako list.
 from operator import contains
+import openpyxl as excel
+import os
 
 
 def nacteni_dat(file):
@@ -46,7 +48,8 @@ def databaze_parametru(data):
         item = line[1]
         while item != "0":          
             item_parameters = {}
-            if (item not in uz_projeto) or ((item in uz_projeto) and (all_parameters.get(item).get("exdate") != "19-JAN-38") and (line[5 + i] == "19-JAN-38")):
+            # Pokud item jeste neresen NEBO ( item uz resen, ale nemel platny exdate                                                                        ) NEBO (item uz resen, ale nemel zadny Warehouse                                         A   ted uz naky ma            )            
+            if (item not in uz_projeto) or ((item in uz_projeto) and (all_parameters.get(item).get("exdate") != "19-JAN-38") and (line[5 + i] == "19-JAN-38")) or ((item in uz_projeto) and (all_parameters.get(item).get("warehouse") == "0") and (line[4 + i] != "0")):
                 item_parameters["description"] = line[2 + i]               
                 item_parameters["typ"] = line[3 + i]
                 item_parameters["warehouse"] = line[4 + i]
@@ -173,7 +176,7 @@ def routing_lt(line, parameters, missing_lts): # Urceni MAN LT podle kolik je ta
                 if manufactured_placard == True:
                     print(f'Vyrabeny item {item} v lince {line} je Manufactured PLACARD.')
                     vyrabeny_lt_linky += 2
-                elif (parameters.get(item).get("description")[0:3] == "USE ") or (" USE " in parameters.get(item).get("description")):
+                elif (parameters.get(item).get("description")[0:4] == "USE ") or (" USE " in parameters.get(item).get("description")):
                     print(f'Vyrabeny item {item} v lince {line} je USE polozka. Tato linka se nepocita.')
                     vsechny_use_polozky.append(item)
                 elif parameters.get(item).get("phantom") == "Yes":
@@ -247,6 +250,7 @@ def routing_lt(line, parameters, missing_lts): # Urceni MAN LT podle kolik je ta
 
 
 def purchased_lt(line, parameters): # Najde prvni nakupovany dil pod poslednim vyrabenym dilem, overi jeho platnost a ziska jeho PUR LT.
+    # print(f'resena linka PLTL: {line}')
     chyby_purchased_lt = []
     nakupovane_dily_bez_purchase_dat = []
     nakupovane_dily_bez_lt = []
@@ -255,6 +259,7 @@ def purchased_lt(line, parameters): # Najde prvni nakupovany dil pod poslednim v
 
     nakupovany_lt_linky = 0
     nejnizsi_nakupovany_dil_v_lince = level_pur_itemu(line, parameters)[0]
+    # print(nejnizsi_nakupovany_dil_v_lince)
 
     if nejnizsi_nakupovany_dil_v_lince == 0:
         print("Linka " + str(line) + " konci vyrabenym dilem s prazdnym kusovnikem. Bud se jedna o Fantom, MAN PLACARD, nebo Manufactured dil, ktery se pouze nakupuje.\n")
@@ -268,7 +273,7 @@ def purchased_lt(line, parameters): # Najde prvni nakupovany dil pod poslednim v
                 nakupovany_lt_linky = 0
             elif item_typ(nejnizsi_nakupovany_dil_v_lince, parameters) == "panel":
                 nakupovany_lt_linky = 0
-            elif (parameters.get(nejnizsi_nakupovany_dil_v_lince).get("description")[0:3] == "USE ") or (" USE " in parameters.get(nejnizsi_nakupovany_dil_v_lince).get("description")):
+            elif (parameters.get(nejnizsi_nakupovany_dil_v_lince).get("description")[0:4] == "USE ") or (" USE " in parameters.get(nejnizsi_nakupovany_dil_v_lince).get("description")):
                 print(f'Tato linka: {line} se nepocita! Nakupovany dil {nejnizsi_nakupovany_dil_v_lince} je USE polozka.')
                 nakupovane_use_polozky.append(nejnizsi_nakupovany_dil_v_lince)    
             elif (parameters.get(nejnizsi_nakupovany_dil_v_lince).get("supplier") == "0") or (parameters.get(nejnizsi_nakupovany_dil_v_lince).get("nakupci") == "0"):
@@ -302,6 +307,9 @@ def purchased_lt(line, parameters): # Najde prvni nakupovany dil pod poslednim v
         elif parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock") != 0:
             print(f'Item {line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]} (safety stock {parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock")}) ma pod sebou material {nejnizsi_nakupovany_dil_v_lince} s neplatnym expiry date.')
             nakupovany_lt_linky = 0            
+        elif je_to_man_placard(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1], parameters):
+            print(f'MAM PLACARD {line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]} s nesmazanym kusovnikem')
+            nakupovany_lt_linky = 0
         else:
             print("Tato linka: " + str(line) + " se nepocita - nakupovany dil " + str(nejnizsi_nakupovany_dil_v_lince) + " nema platny Expiry date.\n")
             nakupovane_expired_date.append(nejnizsi_nakupovany_dil_v_lince)
@@ -381,8 +389,6 @@ def vysledek_itemu(nejdelsi_linka, parameters, vrchol, max_lt_itemu, missing_lts
         sales_lt_itemu = "N/A"
         vysledek_itemu = f'U zadne linky itemu {vrchol} nebylo mozne spocitat platny LT.'
     elif (len(vrchol_chyby) == 1 and "error3" in vrchol_chyby) or len(vrchol_chyby) == 0:
-        print(je_to_man_placard(vrchol, parameters))
-        print(f'Ano {vrchol}')
         if je_to_man_placard(vrchol, parameters) == True:
             sales_lt_itemu = 14       
         else:
@@ -520,9 +526,11 @@ def chyby_linky(
                     vrchol_chyby.append('error7')
 
 def linka_k_zaplanovani(line, parameters):
+    # print(line)
     vse_v_lince = []
     for item in line:
         typ = item_typ(item, parameters)
+        # print(typ)
         if typ == "M":
             if parameters.get(item).get("exdate") == "19-JAN-38":
                 if parameters.get(item).get("phantom") == "Yes":
@@ -555,9 +563,64 @@ def linka_k_zaplanovani(line, parameters):
                     item_to_plan = f'{item} Material s neplatnym expiry date. Vyrabeny naddil {[line.index(item)-1]} pouze nakoupit(ss {parameters.get(item).get("safetystock")})'
                 else:
                     item_to_plan = f'ERROR material {item} ma neplatny expiry date!'
+            elif parameters.get(item).get("exdate") != "19-JAN-38":
+                item_to_plan = ""
         elif typ == "panel":
             item_to_plan = item            
         elif typ == "N/A":
             item_to_plan = f'ErrorType {item}'
         vse_v_lince.append(item_to_plan)
     return(vse_v_lince)
+
+
+def zaplanovani_do_excelu(vse_k_zaplanovani):
+    wb = excel.load_workbook('C:\\Users\\Ondrej.rott\\Documents\\Python\\Pracovni\\to_plan.xlsx')
+    sheet1 = wb["K zaplanovani do LN"]
+    radek_itemu_to_plan = 2
+    sloupec_itemu_to_plan = 1
+   
+    for row in sheet1:
+        sheet1.delete_rows(2,sheet1.max_row)
+    for linka in vse_k_zaplanovani:
+        if vse_k_zaplanovani.index(linka) == 0: # prvni linka k zaplanovani
+            current_vrchol = linka[0]
+            for item in linka:       
+                cell_to_plan = sheet1.cell(radek_itemu_to_plan,sloupec_itemu_to_plan)
+                cell_to_plan.value = item
+                sloupec_itemu_to_plan += 1
+            radek_itemu_to_plan += 1
+            sloupec_itemu_to_plan = 1        
+        else: # nejedna se o prvni linku k zaplanovani
+            for item in linka:
+                try:
+                    if  linka.index(item) == 0: # pro prvni item v lince je test jiny nez pro zbytek 
+                        if item == current_vrchol:
+                            cell_to_plan = sheet1.cell(radek_itemu_to_plan,sloupec_itemu_to_plan)
+                            cell_to_plan.value = None
+                            sloupec_itemu_to_plan += 1
+                        else:
+                            current_vrchol = item
+                            cell_to_plan = sheet1.cell(radek_itemu_to_plan,sloupec_itemu_to_plan)
+                            cell_to_plan.value = item
+                            sloupec_itemu_to_plan += 1
+                    # elif not(len(linka) > len(vse_k_zaplanovani[vse_k_zaplanovani.index(linka)-1])): # predchozi linka nesmi byt kratsi nez tato. (muze se jednat o pokracovani predchoziho poddilu)
+                    elif item == vse_k_zaplanovani[vse_k_zaplanovani.index(linka)-1][linka.index(item)+linka[0:sloupec_itemu_to_plan-1].count(item)]: #pokud je item stejny jako ten nad nim
+                        if sheet1.cell(radek_itemu_to_plan, sloupec_itemu_to_plan -1).value == None: # pokud bunka v excelu vlevo od itemu je prazdna (jedna se o poddil predchoyiho itemu) 
+                            cell_to_plan = sheet1.cell(radek_itemu_to_plan,sloupec_itemu_to_plan)
+                            cell_to_plan.value = None # None → pokracovni dilu nad timto
+                            sloupec_itemu_to_plan += 1
+                        else: 
+                            cell_to_plan = sheet1.cell(radek_itemu_to_plan,sloupec_itemu_to_plan)
+                            cell_to_plan.value = item # jedna se o stejny dil jako nad nim, ale pod jinym vrcholem → zaplanovat
+                            sloupec_itemu_to_plan += 1
+                    else:
+                        cell_to_plan = sheet1.cell(radek_itemu_to_plan,sloupec_itemu_to_plan)
+                        cell_to_plan.value = item # jedna se o stejny dil jako nad nim, ale pod jinym vrcholem → zaplanovat
+                        sloupec_itemu_to_plan += 1
+                except:
+                    cell_to_plan = sheet1.cell(radek_itemu_to_plan,sloupec_itemu_to_plan)
+                    cell_to_plan.value = item # jedna se o stejny dil jako nad nim, ale pod jinym vrcholem → zaplanovat
+                    sloupec_itemu_to_plan += 1
+            radek_itemu_to_plan +=1
+            sloupec_itemu_to_plan = 1
+    wb.save("C:\\Users\\Ondrej.rott\\Documents\\Python\\Pracovni\\to_plan.xlsx")
