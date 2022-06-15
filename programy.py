@@ -1,6 +1,7 @@
 import funkce_prace
 import os
 
+
 # Pridani novycn boud do reportu.
 
 # file_to_process = "report.txt"
@@ -17,8 +18,8 @@ import os
 
 # Samotne dotazovani
 
-path_kusovniky_databaze = 'C:\\Users\\Ondrej.rott\\Documents\\Python\\programy\\databaze boud s kusovniky.txt'
-path_program_databaze = 'C:\\Users\\Ondrej.rott\\Documents\\Python\\programy\\seznam programu.txt'
+path_kusovniky_databaze = 'Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\17_Pricing\\NOV NAC\\Dohledavani Sales Group\\databaze boud s kusovniky.txt'
+path_program_databaze = 'Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\17_Pricing\\NOV NAC\\Dohledavani Sales Group\\seznam programu.txt'
 
 databaze_pro_dotaz = funkce_prace.nacteni_databaze_boud_pro_dotaz(path_kusovniky_databaze)
 print("Data nactena a pripravena pro dotazovani...")
@@ -30,15 +31,20 @@ print("Databaze prgramu vsech boud nacetena...\n")
 
 multivysledek = []
 
-while True:
-    dotaz = input("Zadej PN, nebo seznam PN z bunek pod sebou v excelu, u kterych chces zjistit program / nakonec press ENTER pro vysledek:\n")
-    if dotaz == "":
-      break
-    dotaz = dotaz.strip()
-    vysledek = funkce_prace.dotaz_pn_program(dotaz, databaze_pro_dotaz, kvp_programy)
-    print(str(vysledek))
-    if vysledek not in multivysledek:
-       multivysledek.append(vysledek)
-    # print("\n")
-for vysledek in multivysledek:
-  print(vysledek)
+with open("output.txt", "w") as o:
+
+  while True:
+      dotaz = input("Zadej PN, nebo seznam PN z bunek pod sebou v excelu, u kterych chces zjistit program / nakonec press ENTER pro vysledek:\n")
+      if dotaz == "":
+        break
+      dotaz = dotaz.strip()
+      vysledek = funkce_prace.dotaz_pn_program(dotaz, databaze_pro_dotaz, kvp_programy)
+      print(str(vysledek))
+      if vysledek not in multivysledek:
+        multivysledek.append(vysledek)
+      # print("\n")
+  for vysledek in multivysledek:
+    print(vysledek)
+    o.write(str(vysledek))
+    o.write('\n')
+  o.close
