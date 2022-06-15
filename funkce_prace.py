@@ -97,15 +97,15 @@ def dotaz_pn_program(pn, databaze, programy):  # 3b) Projde kusovnik vsech bud a
             #print(program)
     if "MIX" in vysledne_programy or ("BFE" in vysledne_programy and "SFE" in vysledne_programy):
         #print("je to MIX")
-        # print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
+        #print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
         return (str(dotaz)+":"+"MIX")
     elif "BFE" in vysledne_programy and "SFE" not in vysledne_programy:
         #print("je to BFE")
         #print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
         return (str(dotaz) + ":" + "BFE")
     elif "SFE" in vysledne_programy and "BFE" not in vysledne_programy:
-        #print("je to SFE")
-        #print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
+        # print("je to SFE")
+        # print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
         return (str(dotaz) + ":" + "SFE")
     else:
         print(dotaz + "--- U tohoto pn neumim urcit - bud neznam toto pn, nebo nemam v databazi boudu, ve ktere je. Sorry :-( \n")
