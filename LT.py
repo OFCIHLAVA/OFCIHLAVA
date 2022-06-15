@@ -5,16 +5,16 @@ import openpyxl as excel
 
 
 file_to_process = "report.txt"
-#file_to_process = "demo 1.txt"
+#file_to_process = "demo 2.txt"
 
 path_to_export = 'C:\\Users\\Ondrej.rott\\Documents\\Python\\Lead timy\\Exporty z LN\\' + str(file_to_process)
 
 data_import = KOMBO_funkce_kusovnik.nacteni_dat(path_to_export) # Naceteni dat z txt soboru a rozdeleni na jednotlive linky kusovniku. Vysledek ulozen jako list.
-# print(data_import)
+#print(data_import)
 kusovnik = KOMBO_funkce_kusovnik.vytvoreni_kusovniku(data_import) # Vezme itemy v kazde lince a udela z nich kusovnik po linkach a ulozi do listu kusovnik  vseho.
-# print(kusovnik)
+#print(kusovnik)
 parametry = KOMBO_funkce_kusovnik.databaze_parametru(data_import) # Pro kazdou linku vezme itemy z linky a ulozi jejich hodnoty ex date, lt a ss jako dict do listu all parameters.
-# print(parametry)
+print(parametry)
 data_import.clear()
 
 pocet_linek_kusovniku = len(kusovnik)
@@ -77,10 +77,11 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 
                 # Kusovnik k zaplanovani            
                 linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
-                if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
-                    vrchol_k_zaplanovani.append(linka_k_zaplanovani)
-                if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
-                    vse_k_zaplanovani.append(linka_k_zaplanovani)
+                if linka_k_zaplanovani != None:
+                    if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                        vrchol_k_zaplanovani.append(linka_k_zaplanovani)
+                    if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                        vse_k_zaplanovani.append(linka_k_zaplanovani)
                 # Kusovnik k zaplanovani  
                 i+=1
                 ###
@@ -107,10 +108,11 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
 
                 # Kusovnik k zaplanovani            
                 linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
-                if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
-                    vrchol_k_zaplanovani.append(linka_k_zaplanovani)
-                if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
-                    vse_k_zaplanovani.append(linka_k_zaplanovani)
+                if linka_k_zaplanovani != None:
+                    if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                        vrchol_k_zaplanovani.append(linka_k_zaplanovani)
+                    if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                        vse_k_zaplanovani.append(linka_k_zaplanovani)
                 # Kusovnik k zaplanovani    
 
                 i+=1
@@ -127,10 +129,11 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
 
                 # Kusovnik k zaplanovani            
                 linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
-                if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
-                    vrchol_k_zaplanovani.append(linka_k_zaplanovani)
-                if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
-                    vse_k_zaplanovani.append(linka_k_zaplanovani)
+                if linka_k_zaplanovani != None:
+                    if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                        vrchol_k_zaplanovani.append(linka_k_zaplanovani)
+                    if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                        vse_k_zaplanovani.append(linka_k_zaplanovani)
                 # Kusovnik k zaplanovani   
                 i+=1
                 ###          
@@ -167,10 +170,11 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
 
                 # Kusovnik k zaplanovani            
                 linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
-                if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
-                    vrchol_k_zaplanovani.append(linka_k_zaplanovani)
-                if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
-                    vse_k_zaplanovani.append(linka_k_zaplanovani)
+                if linka_k_zaplanovani != None:
+                    if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                        vrchol_k_zaplanovani.append(linka_k_zaplanovani)
+                    if linka_k_zaplanovani not in vse_k_zaplanovani and len(linka_k_zaplanovani) != 0:
+                        vse_k_zaplanovani.append(linka_k_zaplanovani)
                 # Kusovnik k zaplanovani     
                 i+=1
                 ###
@@ -202,9 +206,9 @@ if len(vsechny_chybejici_routingy) != 0:
         if item[0:3] == "PMP":
             print(f'{item[0:9]}:{item[9:len(item)]}:{parametry.get(item).get("description")}')
         elif parametry.get(vrchol).get("supplier") == "I00000008":    
-            print("Lamphun_A:"+str(item))
+            print(f'Lamphun_A:{item}:{parametry.get(item).get("description")}')
         else:
-            print("anonymni_:"+str(item))
+            print(f'anonymni_:{item}:{parametry.get(item).get("description")}')
 
 
 if len(vsechny_neplatne_routingy) != 0:
