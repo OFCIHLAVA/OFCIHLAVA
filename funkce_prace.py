@@ -55,7 +55,7 @@ def nacteni_databaze_boud_pro_dotaz(file): #Nacucne vsechny boudy s jejich kusov
           for kvp in data_na_linky:
             if kvp not in data_all:
               data_all.append(kvp)
-        print("pocet boud "+ str(len(data_all)))
+        # print("pocet boud "+ str(len(data_all)))
         for line in data_all:
           bouda = line.split(":")[0]
           #print(bouda)
@@ -89,24 +89,24 @@ def dotaz_pn_program(pn, databaze, programy):  # 3b) Projde kusovnik vsech bud a
     #print("dotaz na PN: " + dotaz)
     for vrchol, pn_list in databaze.items():
         if dotaz in pn_list:
-            obsazeno_v_boudach.append(vrchol)
             program = programy.get(vrchol)
+            obsazeno_v_boudach.append(f'{vrchol}({program})')
             if program not in vysledne_programy:
                 vysledne_programy.append(program)
             #print(vrchol)
             #print(program)
     if "MIX" in vysledne_programy or ("BFE" in vysledne_programy and "SFE" in vysledne_programy):
-        #print("je to MIX")
-        #print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
-        return (str(dotaz)+":"+"MIX")
+        # print("je to MIX")
+        # print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
+        return [f'{dotaz}:MIX', obsazeno_v_boudach]
     elif "BFE" in vysledne_programy and "SFE" not in vysledne_programy:
-        #print("je to BFE")
-        #print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
-        return (str(dotaz) + ":" + "BFE")
+        # print("je to BFE")
+        # print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
+        return [f'{dotaz}:BFE', obsazeno_v_boudach]
     elif "SFE" in vysledne_programy and "BFE" not in vysledne_programy:
         # print("je to SFE")
         # print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
-        return (str(dotaz) + ":" + "SFE")
+        return [f'{dotaz}:SFE', obsazeno_v_boudach]
     else:
-        print(dotaz + "--- U tohoto pn neumim urcit - bud neznam toto pn, nebo nemam v databazi boudu, ve ktere je. Sorry :-( \n")
-        return(str(dotaz) + ":" + "TO NEVI ANI JAPONEC")
+        # print(dotaz + "--- U tohoto pn neumim urcit - bud neznam toto pn, nebo nemam v databazi boudu, ve ktere je. Sorry :-( \n")
+        return [f'{dotaz}:N/A', obsazeno_v_boudach]
