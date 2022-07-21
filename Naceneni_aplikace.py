@@ -48,6 +48,7 @@ vsechny_itemy_typ_error = []
 vsechny_manufactured_dily_bez_kusovniku = []
 vrchol_k_zaplanovani = []
 vse_k_zaplanovani = []
+vsechny_manufactured_polozky_pod_projekt = []
 vrchol_chyby = []
 
 # Naceneni do tabulek priprava
@@ -55,8 +56,16 @@ uz_nacenene_vrcholy = []
 sfe_tabulka = []
 bfe_tabulka = []
 neznamy_program_tabulka = []
-zatim_nenancenitelne_itemy_tabulka = []
-platne_kalkulacni_projekty = ["PMP520999", "PMP521999"]
+zatim_nenacenitelne_itemy_tabulka = []
+# Zadavani platnych kalkulacnich projektu do nastaveni
+with open('C:\\Users\\Ondrej.rott\\Documents\\Python\\Nove nacenovani\\nastaveni\\config.txt', 'r') as config:
+    nastaveni_data = config.readlines()
+    config.close()
+config_dict = {}
+for line in nastaveni_data:
+    config_dict[line.split(" = ")[0]] = line.split(" = ")[1].replace("\n","").replace("'", "").replace("[","").replace("]","").replace(" ","")
+platne_kalkulacni_projekty = config_dict.get("aktualne platne kalkulacni projekty").split(",")
+# print(platne_kalkulacni_projekty)
 
 
 # Samotny program
@@ -137,8 +146,12 @@ while mode_set == False:
             else:
                 ok = False
                 print(f'Projekty musi mit 9 znaku a obsahovat PMP + 6cisel.')
+        with open('C:\\Users\\Ondrej.rott\\Documents\\Python\\Nove nacenovani\\nastaveni\\config.txt', 'w') as config:
+            s = str(nove_zadane_kalkulacni_projekty)
+            config.write(f'aktualne platne kalkulacni projekty = {s}')
+            config.close()
+        print(f'Nove platne kalkulacni projekty: {nove_zadane_kalkulacni_projekty}.')
         platne_kalkulacni_projekty = nove_zadane_kalkulacni_projekty
-        print(f'Nove platne kalkulacni projekty: {platne_kalkulacni_projekty}.')
         mode_set = True
     print(f'Kalkulacni mod: {calculation_mode}.')
     # print(mode_set)
@@ -162,7 +175,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                     nejdelsi_linka = KOMBO_funkce_kusovnik.nejdelsi_linka(line, parametry, calculation_mode)
                 
                 # Kusovnik k zaplanovani            
-                linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
+                linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry, vsechny_manufactured_polozky_pod_projekt, platne_kalkulacni_projekty)
                 if linka_k_zaplanovani != None:
                     if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
                         vrchol_k_zaplanovani.append(linka_k_zaplanovani)
@@ -177,35 +190,45 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 if calculation_mode == "nacenovani":
                 # 1. Pokud se jedna o anonymni ciste nakupovanou vec ne z lamphunu. → rovnou nacenit do tabulky 
                     if vrchol[0:3] != "PMP" and parametry.get(vrchol).get("supplier") != "0" and parametry.get(vrchol).get("supplier") != "I00000008" and parametry.get(vrchol).get("nakupci") != "0" and parametry.get(vrchol).get("nakupci") != "PZP001":                 
-                        print(f'ciste ano naku polozka {vrchol}')
-                        program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy).split(":")[1]                   
-                        print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                        # print(f'ciste ano naku polozka {vrchol}')
+                        program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]                   
+                        # print(f'vrchol {vrchol} - {program}')
+                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
                             bfe_tabulka.append(naceneny_item)
                         elif program not in ("SFE", "MIX", "BFE"):
                             neznamy_program_tabulka.append(naceneny_item)
+                        uz_nacenene_vrcholy.append(vrchol)
+                        if vrchol in zatim_nenacenitelne_itemy_tabulka:
+                            zatim_nenacenitelne_itemy_tabulka.remove(vrchol)    
                 # 2. Pokud se jedna o item pod platnym kalkulacnim projektem → nacenit do tabulky
                     elif vrchol[0:9] in platne_kalkulacni_projekty:
-                        print(f'vyrabena pod platnym kalkulakem {vrchol}')
-                        program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy).split(":")[1]    
-                        print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                        # print(f'vyrabena pod platnym kalkulakem {vrchol}')
+                        program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]    
+                        # print(f'vrchol {vrchol} - {program}')
+                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
                             bfe_tabulka.append(naceneny_item)
                         elif program not in ("SFE", "MIX", "BFE"):
                             neznamy_program_tabulka.append(naceneny_item)
+                        uz_nacenene_vrcholy.append(vrchol[9:len(vrchol)])
+                        if vrchol[9:len(vrchol)] in zatim_nenacenitelne_itemy_tabulka:
+                            zatim_nenacenitelne_itemy_tabulka.remove(vrchol[9:len(vrchol)])                         
                 # 3. Pokud se jedna o MAN PLACARD / ID PLACARD → naceni do tabulky           
                     elif (KOMBO_funkce_kusovnik.je_to_man_placard(vrchol, parametry) or KOMBO_funkce_kusovnik.je_to_id_placard(vrchol, parametry)):
                         if (vrchol[0:3] != "PMP" and vrchol not in uz_nacenene_vrcholy) or (vrchol[0:3] == "PMP" and vrchol[9:len(vrchol)] not in uz_nacenene_vrcholy):                            
-                            print(f'MAN PLACARD / ID PLACARD {vrchol}')
-                            program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy).split(":")[1]
-                            print(f'vrchol {vrchol} - {program}')
-                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                            # print(f'MAN PLACARD / ID PLACARD {vrchol}')
+                            # Pokud se jedna o PLACARD pod PMP projektem
+                            if vrchol[0:3] == "PMP":
+                                program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
+                            else:                           
+                                program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
+                            # print(f'vrchol {vrchol} - {program}')
+                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                             if program in ("SFE", "MIX"):
                                 sfe_tabulka.append(naceneny_item)
                             elif program == "BFE":
@@ -214,14 +237,23 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                                 neznamy_program_tabulka.append(naceneny_item)
                             if vrchol[0:3] != "PMP":
                                 uz_nacenene_vrcholy.append(vrchol)
+                                if vrchol in zatim_nenacenitelne_itemy_tabulka:
+                                    zatim_nenacenitelne_itemy_tabulka.remove(vrchol)                                 
                             elif vrchol[0:3] == "PMP":
                                 uz_nacenene_vrcholy.append(vrchol[9:len(vrchol)])
+                                if vrchol[9:len(vrchol)] in zatim_nenacenitelne_itemy_tabulka:
+                                    zatim_nenacenitelne_itemy_tabulka.remove(vrchol[9:len(vrchol)])                                  
                     else:
-                        zatim_nenancenitelne_itemy_tabulka.append(vrchol)
+                        if vrchol[0:3] == "PMP":
+                            if vrchol[9:len(vrchol)] not in uz_nacenene_vrcholy:
+                                zatim_nenacenitelne_itemy_tabulka.append(vrchol)
+                        else:                        
+                            if vrchol not in uz_nacenene_vrcholy:
+                                zatim_nenacenitelne_itemy_tabulka.append(vrchol)
                 ###OOO
 
                 if len(vrchol_chyby) != 0:
-                    print(f'Vrchol {vrchol} chyby {vrchol_chyby}')     
+                    print(f'Vrchol {vrchol} chyby {vrchol_chyby}')
 
                 for linka in vrchol_k_zaplanovani:
                     output_file.write(str(linka))
@@ -240,7 +272,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                     nejdelsi_linka = KOMBO_funkce_kusovnik.nejdelsi_linka(line, parametry, calculation_mode)
 
                 # Kusovnik k zaplanovani            
-                linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
+                linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry, vsechny_manufactured_polozky_pod_projekt, platne_kalkulacni_projekty)
                 if linka_k_zaplanovani != None:
                     if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
                         vrchol_k_zaplanovani.append(linka_k_zaplanovani)
@@ -261,7 +293,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                     nejdelsi_linka = KOMBO_funkce_kusovnik.nejdelsi_linka(line, parametry, calculation_mode)
 
                 # Kusovnik k zaplanovani            
-                linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
+                linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry, vsechny_manufactured_polozky_pod_projekt, platne_kalkulacni_projekty)
                 if linka_k_zaplanovani != None:
                     if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
                         vrchol_k_zaplanovani.append(linka_k_zaplanovani)
@@ -275,35 +307,45 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 if calculation_mode == "nacenovani":
                 # 1. Pokud se jedna o anonymni ciste nakupovanou vec ne z lamphunu. → rovnou nacenit do tabulky 
                     if vrchol[0:3] != "PMP" and parametry.get(vrchol).get("supplier") != "0" and parametry.get(vrchol).get("supplier") != "I00000008" and parametry.get(vrchol).get("nakupci") != "0" and parametry.get(vrchol).get("nakupci") != "PZP001":                 
-                        print(f'ciste ano naku polozka {vrchol}')
-                        program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy).split(":")[1]                   
-                        print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                        # print(f'ciste ano naku polozka {vrchol}')
+                        program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]                   
+                        # print(f'vrchol {vrchol} - {program}')
+                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
                             bfe_tabulka.append(naceneny_item)
                         elif program not in ("SFE", "MIX", "BFE"):
                             neznamy_program_tabulka.append(naceneny_item)
+                        uz_nacenene_vrcholy.append(vrchol)
+                        if vrchol in zatim_nenacenitelne_itemy_tabulka:
+                            zatim_nenacenitelne_itemy_tabulka.remove(vrchol)    
                 # 2. Pokud se jedna o item pod platnym kalkulacnim projektem → nacenit do tabulky
                     elif vrchol[0:9] in platne_kalkulacni_projekty:
-                        print(f'vyrabena pod platnym kalkulakem {vrchol}')
-                        program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy).split(":")[1]    
-                        print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                        # print(f'vyrabena pod platnym kalkulakem {vrchol}')
+                        program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]    
+                        # print(f'vrchol {vrchol} - {program}')
+                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
                             bfe_tabulka.append(naceneny_item)
                         elif program not in ("SFE", "MIX", "BFE"):
                             neznamy_program_tabulka.append(naceneny_item)
+                        uz_nacenene_vrcholy.append(vrchol[9:len(vrchol)])
+                        if vrchol[9:len(vrchol)] in zatim_nenacenitelne_itemy_tabulka:
+                            zatim_nenacenitelne_itemy_tabulka.remove(vrchol[9:len(vrchol)])                         
                 # 3. Pokud se jedna o MAN PLACARD / ID PLACARD → naceni do tabulky           
                     elif (KOMBO_funkce_kusovnik.je_to_man_placard(vrchol, parametry) or KOMBO_funkce_kusovnik.je_to_id_placard(vrchol, parametry)):
                         if (vrchol[0:3] != "PMP" and vrchol not in uz_nacenene_vrcholy) or (vrchol[0:3] == "PMP" and vrchol[9:len(vrchol)] not in uz_nacenene_vrcholy):                            
-                            print(f'MAN PLACARD / ID PLACARD {vrchol}')
-                            program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy).split(":")[1]
-                            print(f'vrchol {vrchol} - {program}')
-                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                            # print(f'MAN PLACARD / ID PLACARD {vrchol}')
+                            # Pokud se jedna o PLACARD pod PMP projektem
+                            if vrchol[0:3] == "PMP":
+                                program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
+                            else:                           
+                                program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
+                            # print(f'vrchol {vrchol} - {program}')
+                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                             if program in ("SFE", "MIX"):
                                 sfe_tabulka.append(naceneny_item)
                             elif program == "BFE":
@@ -312,10 +354,19 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                                 neznamy_program_tabulka.append(naceneny_item)
                             if vrchol[0:3] != "PMP":
                                 uz_nacenene_vrcholy.append(vrchol)
+                                if vrchol in zatim_nenacenitelne_itemy_tabulka:
+                                    zatim_nenacenitelne_itemy_tabulka.remove(vrchol)                                 
                             elif vrchol[0:3] == "PMP":
                                 uz_nacenene_vrcholy.append(vrchol[9:len(vrchol)])
+                                if vrchol[9:len(vrchol)] in zatim_nenacenitelne_itemy_tabulka:
+                                    zatim_nenacenitelne_itemy_tabulka.remove(vrchol[9:len(vrchol)])                                  
                     else:
-                        zatim_nenancenitelne_itemy_tabulka.append(vrchol)
+                        if vrchol[0:3] == "PMP":
+                            if vrchol[9:len(vrchol)] not in uz_nacenene_vrcholy:
+                                zatim_nenacenitelne_itemy_tabulka.append(vrchol)
+                        else:                        
+                            if vrchol not in uz_nacenene_vrcholy:
+                                zatim_nenacenitelne_itemy_tabulka.append(vrchol)
                 ###OOO
                 if len(vrchol_chyby) != 0:
                     print(f'Vrchol {vrchol} chyby {vrchol_chyby}')
@@ -324,7 +375,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                     output_file.write(str(linka))
                     output_file.write('\n')
 
-                KOMBO_funkce_kusovnik.zaplanovani_do_excelu(vse_k_zaplanovani)
+                # KOMBO_funkce_kusovnik.zaplanovani_do_excelu(vse_k_zaplanovani)
 
             else: # Novy vrchol.
                 vysledek.append(KOMBO_funkce_kusovnik.vysledek_itemu(nejdelsi_linka, parametry, vrchol, max_lt_itemu, chybejici_routingy_equals, vrchol_chyby, calculation_mode))# Sestaveni nejdelsi linky soucasneho vrcholu a jejiho LT.            
@@ -332,35 +383,45 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 if calculation_mode == "nacenovani":
                 # 1. Pokud se jedna o anonymni ciste nakupovanou vec ne z lamphunu. → rovnou nacenit do tabulky 
                     if vrchol[0:3] != "PMP" and parametry.get(vrchol).get("supplier") != "0" and parametry.get(vrchol).get("supplier") != "I00000008" and parametry.get(vrchol).get("nakupci") != "0" and parametry.get(vrchol).get("nakupci") != "PZP001":                 
-                        print(f'ciste ano naku polozka {vrchol}')
-                        program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy).split(":")[1]                   
-                        print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                        # print(f'ciste ano naku polozka {vrchol}')
+                        program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]                   
+                        # print(f'vrchol {vrchol} - {program}')
+                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
                             bfe_tabulka.append(naceneny_item)
                         elif program not in ("SFE", "MIX", "BFE"):
                             neznamy_program_tabulka.append(naceneny_item)
+                        uz_nacenene_vrcholy.append(vrchol)
+                        if vrchol in zatim_nenacenitelne_itemy_tabulka:
+                            zatim_nenacenitelne_itemy_tabulka.remove(vrchol)    
                 # 2. Pokud se jedna o item pod platnym kalkulacnim projektem → nacenit do tabulky
                     elif vrchol[0:9] in platne_kalkulacni_projekty:
-                        print(f'vyrabena pod platnym kalkulakem {vrchol}')
-                        program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy).split(":")[1]    
-                        print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                        # print(f'vyrabena pod platnym kalkulakem {vrchol}')
+                        program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]    
+                        # print(f'vrchol {vrchol} - {program}')
+                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
                             bfe_tabulka.append(naceneny_item)
                         elif program not in ("SFE", "MIX", "BFE"):
                             neznamy_program_tabulka.append(naceneny_item)
+                        uz_nacenene_vrcholy.append(vrchol[9:len(vrchol)])
+                        if vrchol[9:len(vrchol)] in zatim_nenacenitelne_itemy_tabulka:
+                            zatim_nenacenitelne_itemy_tabulka.remove(vrchol[9:len(vrchol)])                         
                 # 3. Pokud se jedna o MAN PLACARD / ID PLACARD → naceni do tabulky           
                     elif (KOMBO_funkce_kusovnik.je_to_man_placard(vrchol, parametry) or KOMBO_funkce_kusovnik.je_to_id_placard(vrchol, parametry)):
                         if (vrchol[0:3] != "PMP" and vrchol not in uz_nacenene_vrcholy) or (vrchol[0:3] == "PMP" and vrchol[9:len(vrchol)] not in uz_nacenene_vrcholy):                            
-                            print(f'MAN PLACARD / ID PLACARD {vrchol}')
-                            program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy).split(":")[1]
-                            print(f'vrchol {vrchol} - {program}')
-                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                            # print(f'MAN PLACARD / ID PLACARD {vrchol}')
+                            # Pokud se jedna o PLACARD pod PMP projektem
+                            if vrchol[0:3] == "PMP":
+                                program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
+                            else:                           
+                                program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
+                            # print(f'vrchol {vrchol} - {program}')
+                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                             if program in ("SFE", "MIX"):
                                 sfe_tabulka.append(naceneny_item)
                             elif program == "BFE":
@@ -369,10 +430,19 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                                 neznamy_program_tabulka.append(naceneny_item)
                             if vrchol[0:3] != "PMP":
                                 uz_nacenene_vrcholy.append(vrchol)
+                                if vrchol in zatim_nenacenitelne_itemy_tabulka:
+                                    zatim_nenacenitelne_itemy_tabulka.remove(vrchol)                                 
                             elif vrchol[0:3] == "PMP":
                                 uz_nacenene_vrcholy.append(vrchol[9:len(vrchol)])
+                                if vrchol[9:len(vrchol)] in zatim_nenacenitelne_itemy_tabulka:
+                                    zatim_nenacenitelne_itemy_tabulka.remove(vrchol[9:len(vrchol)])                                  
                     else:
-                        zatim_nenancenitelne_itemy_tabulka.append(vrchol)
+                        if vrchol[0:3] == "PMP":
+                            if vrchol[9:len(vrchol)] not in uz_nacenene_vrcholy:
+                                zatim_nenacenitelne_itemy_tabulka.append(vrchol)
+                        else:                        
+                            if vrchol not in uz_nacenene_vrcholy:
+                                zatim_nenacenitelne_itemy_tabulka.append(vrchol)
                 ###OOO
                 if len(vrchol_chyby) != 0:
                     print(f'Vrchol {vrchol} chyby {vrchol_chyby}')
@@ -394,7 +464,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                     nejdelsi_linka = KOMBO_funkce_kusovnik.nejdelsi_linka(line, parametry, calculation_mode)
 
                 # Kusovnik k zaplanovani            
-                linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry)
+                linka_k_zaplanovani = KOMBO_funkce_kusovnik.linka_k_zaplanovani(line, parametry, vsechny_manufactured_polozky_pod_projekt, platne_kalkulacni_projekty)
                 if linka_k_zaplanovani != None:
                     if linka_k_zaplanovani not in vrchol_k_zaplanovani and len(linka_k_zaplanovani) != 0:
                         vrchol_k_zaplanovani.append(linka_k_zaplanovani)
@@ -408,35 +478,45 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 if calculation_mode == "nacenovani":
                 # 1. Pokud se jedna o anonymni ciste nakupovanou vec ne z lamphunu. → rovnou nacenit do tabulky 
                     if vrchol[0:3] != "PMP" and parametry.get(vrchol).get("supplier") != "0" and parametry.get(vrchol).get("supplier") != "I00000008" and parametry.get(vrchol).get("nakupci") != "0" and parametry.get(vrchol).get("nakupci") != "PZP001":                 
-                        print(f'ciste ano naku polozka {vrchol}')
-                        program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy).split(":")[1]                   
-                        print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                        # print(f'ciste ano naku polozka {vrchol}')
+                        program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]                   
+                        # print(f'vrchol {vrchol} - {program}')
+                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
                             bfe_tabulka.append(naceneny_item)
                         elif program not in ("SFE", "MIX", "BFE"):
                             neznamy_program_tabulka.append(naceneny_item)
+                        uz_nacenene_vrcholy.append(vrchol)
+                        if vrchol in zatim_nenacenitelne_itemy_tabulka:
+                            zatim_nenacenitelne_itemy_tabulka.remove(vrchol)    
                 # 2. Pokud se jedna o item pod platnym kalkulacnim projektem → nacenit do tabulky
                     elif vrchol[0:9] in platne_kalkulacni_projekty:
-                        print(f'vyrabena pod platnym kalkulakem {vrchol}')
-                        program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy).split(":")[1]    
-                        print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                        # print(f'vyrabena pod platnym kalkulakem {vrchol}')
+                        program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]    
+                        # print(f'vrchol {vrchol} - {program}')
+                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
                             bfe_tabulka.append(naceneny_item)
                         elif program not in ("SFE", "MIX", "BFE"):
                             neznamy_program_tabulka.append(naceneny_item)
+                        uz_nacenene_vrcholy.append(vrchol[9:len(vrchol)])
+                        if vrchol[9:len(vrchol)] in zatim_nenacenitelne_itemy_tabulka:
+                            zatim_nenacenitelne_itemy_tabulka.remove(vrchol[9:len(vrchol)])                         
                 # 3. Pokud se jedna o MAN PLACARD / ID PLACARD → naceni do tabulky           
                     elif (KOMBO_funkce_kusovnik.je_to_man_placard(vrchol, parametry) or KOMBO_funkce_kusovnik.je_to_id_placard(vrchol, parametry)):
                         if (vrchol[0:3] != "PMP" and vrchol not in uz_nacenene_vrcholy) or (vrchol[0:3] == "PMP" and vrchol[9:len(vrchol)] not in uz_nacenene_vrcholy):                            
-                            print(f'MAN PLACARD / ID PLACARD {vrchol}')
-                            program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy).split(":")[1]
-                            print(f'vrchol {vrchol} - {program}')
-                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program)
+                            # print(f'MAN PLACARD / ID PLACARD {vrchol}')
+                            # Pokud se jedna o PLACARD pod PMP projektem
+                            if vrchol[0:3] == "PMP":
+                                program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
+                            else:                           
+                                program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
+                            # print(f'vrchol {vrchol} - {program}')
+                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
                             if program in ("SFE", "MIX"):
                                 sfe_tabulka.append(naceneny_item)
                             elif program == "BFE":
@@ -445,10 +525,19 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                                 neznamy_program_tabulka.append(naceneny_item)
                             if vrchol[0:3] != "PMP":
                                 uz_nacenene_vrcholy.append(vrchol)
+                                if vrchol in zatim_nenacenitelne_itemy_tabulka:
+                                    zatim_nenacenitelne_itemy_tabulka.remove(vrchol)                                 
                             elif vrchol[0:3] == "PMP":
                                 uz_nacenene_vrcholy.append(vrchol[9:len(vrchol)])
+                                if vrchol[9:len(vrchol)] in zatim_nenacenitelne_itemy_tabulka:
+                                    zatim_nenacenitelne_itemy_tabulka.remove(vrchol[9:len(vrchol)])                                  
                     else:
-                        zatim_nenancenitelne_itemy_tabulka.append(vrchol)
+                        if vrchol[0:3] == "PMP":
+                            if vrchol[9:len(vrchol)] not in uz_nacenene_vrcholy:
+                                zatim_nenacenitelne_itemy_tabulka.append(vrchol)
+                        else:                        
+                            if vrchol not in uz_nacenene_vrcholy:
+                                zatim_nenacenitelne_itemy_tabulka.append(vrchol)
                 ###OOO
                 if len(vrchol_chyby) != 0:
                     print(f'Vrchol {vrchol} chyby {vrchol_chyby}')
@@ -457,7 +546,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                     output_file.write(str(linka))
                     output_file.write('\n')
                 
-                KOMBO_funkce_kusovnik.zaplanovani_do_excelu(vse_k_zaplanovani)    
+                # KOMBO_funkce_kusovnik.zaplanovani_do_excelu(vse_k_zaplanovani)    
 
 output_file.close()
 
@@ -480,7 +569,6 @@ if len(vsechny_chybejici_routingy) != 0:
         else:
             print(f'anonymni_:{item}:{parametry.get(item).get("description")}')
 
-
 if len(vsechny_neplatne_routingy) != 0:
     print("\nSeznam vsech dilu s neplatnym routingem z reportu:")
     for item in vsechny_neplatne_routingy:
@@ -489,14 +577,12 @@ if len(vsechny_neplatne_routingy) != 0:
         elif parametry.get(vrchol).get("supplier") == "I00000008":    
             print("Lamphun_A:"+str(item))
         else:
-            print("anonymni_:"+str(item))
-         
+            print("anonymni_:"+str(item))         
 
 if len(vsechny_nakupovane_bez_puchase_dat) != 0:
     print("\nSeznam vsech nakupovanych dilu bez dodavatele nebo nakupciho z reportu:")
     for item in vsechny_nakupovane_bez_puchase_dat:
             print("anonymni_:"+str(item))
-
 
 if len(vsechny_nakupovane_bez_puchase_lt) != 0:
     print("\nSeznam vsech nakupovanych dilu bez purchased LT v LN z reportu:")
@@ -531,7 +617,12 @@ if len(vsechny_manufactured_dily_bez_kusovniku) != 0:
         elif parametry.get(vrchol).get("supplier") == "I00000008":    
             print("Lamphun_A:"+str(item))
         else:
-            print("anonymni_:"+str(item))     
+            print("anonymni_:"+str(item))
+
+if len(vsechny_manufactured_polozky_pod_projekt) != 0:
+    print("\nSeznam Manufactured dilu PREPNOUT POD PROJEKT:")
+    for item in vsechny_manufactured_polozky_pod_projekt:
+        print(item)
 
 print("\n")
 print("Vysledek pro naceneni:\n")
@@ -547,10 +638,21 @@ print("Neznamy program tabulka:\n")
 for naceneny_vrchol in neznamy_program_tabulka:
     print(naceneny_vrchol)
 print("\n")
-print("Zatim nenacenitelne polozky tabulka:\n")
-for error_vrchol in zatim_nenancenitelne_itemy_tabulka:
-    print(error_vrchol)
-print("\n")
+
+zatim_nenacenitelne_itemy_tabulka2 = []
+for error in zatim_nenacenitelne_itemy_tabulka:
+    # print(error)
+    if error[0:3] == "PMP":
+        if error[9:len(error)] not in uz_nacenene_vrcholy:
+            zatim_nenacenitelne_itemy_tabulka2.append(error)
+    elif error not in uz_nacenene_vrcholy:
+            zatim_nenacenitelne_itemy_tabulka2.append(error)
+zatim_nenacenitelne_itemy_tabulka = zatim_nenacenitelne_itemy_tabulka2
+
+if len(zatim_nenacenitelne_itemy_tabulka) != 0:
+    print("Zatim nenacenitelne polozky tabulka:\n(Nejedna se o\n1) ciste nakupovanou s platnymi PUR daty.\n2) vyrabenou polozku pod platnym kalkulacnim projektem.\n3) MAN PLACARD / ID PLACARD.)\n")
+    for error_vrchol in zatim_nenacenitelne_itemy_tabulka:
+        print(error_vrchol)
 
 # print(parametry)    
 print("\nKONEC PROGRAMU")
