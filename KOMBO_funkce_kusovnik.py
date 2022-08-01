@@ -1,6 +1,7 @@
 # Naceteni dat z txt soboru a rozdeleni na jednotlive linky kusovniku. Vysledek ulozen jako list.
 from inspect import Parameter
 from operator import contains
+from numpy import False_
 import openpyxl as excel
 import os
 from datetime import date
@@ -24,44 +25,21 @@ def nacteni_dat(file):
             vse_ocistene.append(linka_bez_mezer)
     return vse_ocistene
 
-# Vytvoreni kusovniku itemu jako list po jednotlivych linkach kusovniku.
-def vytvoreni_kusovniku(data):
-    kusovnik_vseho = []  # Kusovnik vsech linek:
-    for line in data:
-        if line[5] == "19-JAN-38":
-            i = 0
-            kusovnik_linky = []
-            item = line[1]
-            while item != "0":
-                kusovnik_linky.append(item)
-                i += 23
-                item = line[1+i]
-            if kusovnik_linky not in kusovnik_vseho:
-                kusovnik_vseho.append(kusovnik_linky)
-    return kusovnik_vseho
-
-
 # Pro kazdou linku vezme itemy z linky a ulozi jejich hodnoty ex date, lt, ss a routing LT jako dict do listu all parameters.
-def databaze_parametru(data):
+def databaze_parametru(data, krok):
     all_parameters = {}
     uz_projeto = []
     for line in data:
         i = 0
         item = line[1]
         while item != "0":
-            # print(item)
-            item_parameters = {}
-            # Pokud item jeste neresen NEBO ( item uz resen, ale nemel platny exdate                                                                        ) NEBO (item uz resen, ale nemel zadny Warehouse                                         A   ted uz naky ma            )            
-            if (item not in uz_projeto) or ((item in uz_projeto) and (all_parameters.get(item).get("exdate") != "19-JAN-38") and (line[5 + i] == "19-JAN-38")):
-                # print(f'not in uz projeto')
-                item_parameters["description"] = line[2 + i]               
-                item_parameters["typ"] = line[3 + i]
-                item_parameters["warehouse"] = line[4 + i]
-                item_parameters["exdate"] = line[5 + i]
-
-                # Neprojektovym dilum rovnou priradi purchase data.                               
-                if item[0:3] != "PMP":
-                    # print(f'nePMP dil')
+            item_parameters = {}            
+            if item not in uz_projeto: # Pokud se dil jeste neresil:                
+                if item[0:3] != "PMP": # Pro anonymni dil rovnou doplni data.
+                    item_parameters["description"] = line[2 + i]               
+                    item_parameters["typ"] = line[3 + i]
+                    item_parameters["warehouse"] = line[4 + i]
+                    item_parameters["exdate"] = line[5 + i]
                     item_parameters["supplytime"] = float(line[6 + i])
                     item_parameters["purchase price"] = float(line[7 + i])
                     item_parameters["purchase currency"] = line[8 + i]
@@ -74,134 +52,190 @@ def databaze_parametru(data):
                     item_parameters["sales group"] = line[15 + i]            
                     item_parameters["sales lead time"] = int(line[16 + i])
                     item_parameters["sales price unit"] = line[17 + i]
-                    
-                # Pro PMP itemy se koukne, jestli uz neni anonymni dil s doplnenymi purchase daty → pokud ano, priradi projektovemu dilu stejna purchase data. 
-                elif item[0:3] == "PMP":
-                        # print(f'PMP dil')
-                        if all_parameters.get(item[9:len(item)]) == None: #Pokud neni jeste anonymni, rovnou doplni data.
-                            # print(f'jeste neni anonym')
-                            item_parameters["supplytime"] = float(line[6 + i])
-                            item_parameters["purchase price"] = float(line[7 + i])
-                            item_parameters["purchase currency"] = line[8 + i]
-                            item_parameters["purchase price unit"] = line[9 + i]
-                            item_parameters["supplier"] = line[10 + i]
-                            item_parameters["supplier name"] = line[11 + i]
-                            item_parameters["nakupci"] = line[12 + i]
-                            item_parameters["ordering system"] = line[13 + i]
-                            item_parameters["safetystock"] = float(line[14 + i])
-                            item_parameters["sales group"] = line[15 + i]            
-                            item_parameters["sales lead time"] = int(line[16 + i])
-                            item_parameters["sales price unit"] = line[17 + i]           
-                        else: #Pokud uz je anonymni → pokud jsou data na anonymnim nenulova → vezme z anonymni polozky.
-                            # supplytime
-                            # print(f'uz je anonym')
-                            if all_parameters.get(item[9:len(item)]).get("supplytime") != 0:
-                                item_parameters["supplytime"] = all_parameters.get(item[9:len(item)]).get("supplytime")
-                            else:
-                                item_parameters["supplytime"] = float(line[6 + i])
-                            # purchase price
-                            if all_parameters.get(item[9:len(item)]).get("purchase price") != 0:
-                                item_parameters["purchase price"] = all_parameters.get(item[9:len(item)]).get("purchase price")
-                            else:
-                                item_parameters["purchase price"] = float(line[7 + i])                            
-                            # purchase currency
-                            if all_parameters.get(item[9:len(item)]).get("purchase currency") != "0":
-                                item_parameters["purchase currency"] = all_parameters.get(item[9:len(item)]).get("purchase currency")
-                            else:
-                                item_parameters["purchase currency"] = float(line[8 + i])                             
-                            # purchase price unit
-                            if all_parameters.get(item[9:len(item)]).get("purchase currency") != "0":
-                                item_parameters["purchase price unit"] = all_parameters.get(item[9:len(item)]).get("purchase price unit")
-                            else:
-                                item_parameters["purchase price unit"] = float(line[9 + i])                                                                             
-                            # supplier
-                            if all_parameters.get(item[9:len(item)]).get("supplier") != "0":
-                                item_parameters["supplier"] = all_parameters.get(item[9:len(item)]).get("supplier")
-                            else:
-                                item_parameters["supplier"] = (line[10 + i])                            
-                            # supplier name
-                            if all_parameters.get(item[9:len(item)]).get("supplier name") != "0":
-                                item_parameters["supplier name"] = all_parameters.get(item[9:len(item)]).get("supplier name")
-                            else:
-                                item_parameters["supplier name"] = line[11 + i]                          
-                            # nakupci
-                            if all_parameters.get(item[9:len(item)]).get("nakupci") != "0":
-                                item_parameters["nakupci"] = all_parameters.get(item[9:len(item)]).get("nakupci")
-                            else:
-                                item_parameters["nakupci"] = (line[12 + i])
-                            # ordering system
-                            if all_parameters.get(item[9:len(item)]).get("ordering system") != 0:
-                                item_parameters["ordering system"] = all_parameters.get(item[9:len(item)]).get("ordering system")
-                            else:
-                                item_parameters["ordering system"] = line[13 + i]                                              
-                            # safetystock
-                            if all_parameters.get(item[9:len(item)]).get("safetystock") != 0:
-                                item_parameters["safetystock"] = all_parameters.get(item[9:len(item)]).get("safetystock")
-                            else:
-                                item_parameters["safetystock"] = float(line[14 + i])
-                            # sales group
-                            if all_parameters.get(item[9:len(item)]).get("sales group") != "0":
-                                item_parameters["sales group"] = all_parameters.get(item[9:len(item)]).get("sales group")
-                            else:
-                                item_parameters["sales group"] = line[15 + i]                            
-                            # sales lead time
-                            if all_parameters.get(item[9:len(item)]).get("sales lead time") != 0:
-                                item_parameters["sales lead time"] = all_parameters.get(item[9:len(item)]).get("sales lead time")
-                            else:
-                                item_parameters["sales lead time"] = int(line[16 + i])                            
-                            # sales price unit
-                            if all_parameters.get(item[9:len(item)]).get("sales price unit") != "0":
-                                item_parameters["sales price unit"] = all_parameters.get(item[9:len(item)]).get("sales price unit")
-                            else:
-                                item_parameters["sales price unit"] = line[17 + i]
-                # Routing LT
-                if all_parameters.get(item) == None: # Pokud jeste neni item v parametrech → da RLT z dat.
                     item_parameters["routinglt"] = float(line[18 + i])
-                elif all_parameters.get(item) != None: # Pokud uz je → prepise ho novejsimi, pokud neni 0 RLT z dat.
-                    if line[18 + i] != "0":
-                        item_parameters["routinglt"] = float(line[18 + i])
-                    else:
-                        item_parameters["routinglt"] = all_parameters.get(item).get("routinglt")                  
-                # Projektovy RLT prepsani anononymu, pokud neni Projektovy 0.
-                if (item[0:3] == "PMP") and (line[18 + i] != "0"):
-                    if all_parameters.get(item[9:len(item)]) != None: # Pokud uz anonym v parametrech je.
-                        all_parameters[item[9:len(item)]]["routinglt"] = float(line[18 + i])
-
-                # STD routing LTnakupci
-                if all_parameters.get(item) == None: # Pokud jeste neni item v parametrech → da STD LT z dat.
                     item_parameters["standardroutinglt"] = float(line[19 + i])
-                elif all_parameters.get(item) != None:
-                    if line[19 + i] != "0":
+                    item_parameters["phantom"] = line[20 + i]
+                    item_parameters["standard cost"] = float(line[21 + i])
+                    item_parameters["material cost"] = float(line[22 + i])                
+                    item_parameters["operation cost"] = float(line[23 + i])
+                    item_parameters["bom qty"] = float(line[24 + i])
+
+                    
+                    all_parameters[item] = item_parameters # Prida parametry prave reseneho itemu do parametru vsech itemu z reportu.
+                    uz_projeto.append(item) # Prida prave reseny item do seznamu uz projetych itemu.
+
+                    i += krok # Krok na dalsi item v lince. 1/2
+                    item = line[1 + i] # Krok na dalsi item v lince. 2/2
+
+                elif item[0:3] == "PMP": # A) Pro projektovy dil rovnou doplni data. B) Vytvori anonymni polozku se stejnymi daty, pokud uz neexistuje.
+                    # A)
+                    item_parameters["description"] = line[2 + i]               
+                    item_parameters["typ"] = line[3 + i]
+                    item_parameters["warehouse"] = line[4 + i]
+                    item_parameters["exdate"] = line[5 + i]
+                    item_parameters["supplytime"] = float(line[6 + i])
+                    item_parameters["purchase price"] = float(line[7 + i])
+                    item_parameters["purchase currency"] = line[8 + i]
+                    item_parameters["purchase price unit"] = line[9 + i]
+                    item_parameters["supplier"] = line[10 + i]
+                    item_parameters["supplier name"] = line[11 + i]
+                    item_parameters["nakupci"] = line[12 + i]
+                    item_parameters["ordering system"] = line[13 + i]
+                    item_parameters["safetystock"] = float(line[14 + i])
+                    item_parameters["sales group"] = line[15 + i]            
+                    item_parameters["sales lead time"] = int(line[16 + i])
+                    item_parameters["sales price unit"] = line[17 + i]
+                    item_parameters["routinglt"] = float(line[18 + i])
+                    item_parameters["standardroutinglt"] = float(line[19 + i])
+                    item_parameters["phantom"] = line[20 + i]
+                    item_parameters["standard cost"] = float(line[21 + i])
+                    item_parameters["material cost"] = float(line[22 + i])                
+                    item_parameters["operation cost"] = float(line[23 + i])
+                    item_parameters["bom qty"] = float(line[24 + i])
+
+                    all_parameters[item] = item_parameters # Prida parametry prave reseneho itemu do parametru vsech itemu z reportu.
+                    uz_projeto.append(item) # Prida prave reseny item do seznamu uz projetych itemu.
+                                        
+                    # B)
+                    if all_parameters.get(item[9:len(item)]) == None: #Pokud neni jeste anonymni, rovnou vytvori anonymni polozku s daty z projektove polozky.
+                        item_parameters["description"] = line[2 + i]               
+                        item_parameters["typ"] = line[3 + i]
+                        item_parameters["warehouse"] = line[4 + i]
+                        item_parameters["exdate"] = line[5 + i]
+                        item_parameters["supplytime"] = float(line[6 + i])
+                        item_parameters["purchase price"] = float(line[7 + i])
+                        item_parameters["purchase currency"] = line[8 + i]
+                        item_parameters["purchase price unit"] = line[9 + i]
+                        item_parameters["supplier"] = line[10 + i]
+                        item_parameters["supplier name"] = line[11 + i]
+                        item_parameters["nakupci"] = line[12 + i]
+                        item_parameters["ordering system"] = line[13 + i]
+                        item_parameters["safetystock"] = float(line[14 + i])
+                        item_parameters["sales group"] = line[15 + i]            
+                        item_parameters["sales lead time"] = int(line[16 + i])
+                        item_parameters["sales price unit"] = line[17 + i]
+                        item_parameters["routinglt"] = float(line[18 + i])
                         item_parameters["standardroutinglt"] = float(line[19 + i])
-                    else:
-                        item_parameters["standardroutinglt"] = all_parameters.get(item).get("standardroutinglt")
-                # STD LT prepsani anononymu, pokud neni Projektovy 0.
-                if (item[0:3] == "PMP") and (line[19 + i] != "0"):
-                    if all_parameters.get(item[9:len(item)]) != None: # Pokud uz anonym v parametrech je.
-                        all_parameters[item[9:len(item)]]["standardroutinglt"] = float(line[19 + i])
-                # Phantom?
-                item_parameters["phantom"] = line[20 + i]
-                # standard cost
-                item_parameters["standard cost"] = float(line[21 + i])
-                # matarial cost
-                item_parameters["material cost"] = float(line[22 + i])                
-                # operation cost
-                item_parameters["operation cost"] = float(line[23 + i])
-                
-                # Pridani parametru itemu do vsech parametru
-                all_parameters[item] = item_parameters
-                uz_projeto.append(item)
-                # krok na dalsi item
-                i += 23
-                item = line[1 + i]
-            elif (item in uz_projeto) and (all_parameters.get(item).get("warehouse") == "0") and (line[4 + i] != "0"):
-                all_parameters[item]["warehouse"] = line[4 + i]
-                i += 23
-                item = line[1 + i]
-            else:
-                i += 23
-                item = line[1 + i]
-    return all_parameters
+                        item_parameters["phantom"] = line[20 + i]
+                        item_parameters["standard cost"] = float(line[21 + i])
+                        item_parameters["material cost"] = float(line[22 + i])                
+                        item_parameters["operation cost"] = float(line[23 + i])
+                        item_parameters["bom qty"] = float(line[24 + i])
+                    
+                        all_parameters[item[9:len(item)]] = item_parameters # Prida parametry prave reseneho itemu do parametru vsech itemu z reportu.
+                        uz_projeto.append(item[9:len(item)]) # Prida prave reseny item do seznamu uz projetych itemu.                        
+                    
+                    i += krok # Krok na dalsi item v lince. 1/2
+                    item = line[1 + i] # Krok na dalsi item v lince. 2/2
+
+            else: # Pokud se dil nebo jeho anonymni verze uz resil: 
+                if item[0:3] != "PMP": # Pro anonymni dil.                  
+                    if line[5 + i] == "19-JAN-38": # Prepise data, pokud ma reseny item platny expire date.
+                        item_parameters["description"] = line[2 + i]               
+                        item_parameters["typ"] = line[3 + i]
+                        item_parameters["warehouse"] = line[4 + i]
+                        item_parameters["exdate"] = line[5 + i]
+                        item_parameters["supplytime"] = float(line[6 + i])
+                        item_parameters["purchase price"] = float(line[7 + i])
+                        item_parameters["purchase currency"] = line[8 + i]
+                        item_parameters["purchase price unit"] = line[9 + i]
+                        item_parameters["supplier"] = line[10 + i]
+                        item_parameters["supplier name"] = line[11 + i]
+                        item_parameters["nakupci"] = line[12 + i]
+                        item_parameters["ordering system"] = line[13 + i]
+                        item_parameters["safetystock"] = float(line[14 + i])
+                        item_parameters["sales group"] = line[15 + i]            
+                        item_parameters["sales lead time"] = int(line[16 + i])
+                        item_parameters["sales price unit"] = line[17 + i]
+                        item_parameters["routinglt"] = float(line[18 + i])
+                        item_parameters["standardroutinglt"] = float(line[19 + i])
+                        item_parameters["phantom"] = line[20 + i]
+                        item_parameters["standard cost"] = float(line[21 + i])
+                        item_parameters["material cost"] = float(line[22 + i])                
+                        item_parameters["operation cost"] = float(line[23 + i])
+                        item_parameters["bom qty"] = float(line[24 + i])
+                    
+                        all_parameters[item] = item_parameters # Prida parametry prave reseneho itemu do parametru vsech itemu z reportu.
+                                               
+                        i += krok # Krok na dalsi item v lince. 1/2
+                        item = line[1 + i] # Krok na dalsi item v lince. 2/2
+                    
+                    elif line[5 + i] != "19-JAN-38": # Preskoci item, pokud ma reseny item NEplatny expire date. Rovnou se prejde na dalsi item.
+                        i += krok # Krok na dalsi item v lince. 1/2
+                        item = line[1 + i] # Krok na dalsi item v lince. 2/2
+
+                elif item[0:3] == "PMP": # A) Pro projektovy dil rovnou doplni data. B) V anonymni polozce aktualizuje Routing LT a Standard routing LT.
+                    # A)
+                    item_parameters["description"] = line[2 + i]               
+                    item_parameters["typ"] = line[3 + i]
+                    item_parameters["warehouse"] = line[4 + i]
+                    item_parameters["exdate"] = line[5 + i]
+                    item_parameters["supplytime"] = float(line[6 + i])
+                    item_parameters["purchase price"] = float(line[7 + i])
+                    item_parameters["purchase currency"] = line[8 + i]
+                    item_parameters["purchase price unit"] = line[9 + i]
+                    item_parameters["supplier"] = line[10 + i]
+                    item_parameters["supplier name"] = line[11 + i]
+                    item_parameters["nakupci"] = line[12 + i]
+                    item_parameters["ordering system"] = line[13 + i]
+                    item_parameters["safetystock"] = float(line[14 + i])
+                    item_parameters["sales group"] = line[15 + i]            
+                    item_parameters["sales lead time"] = int(line[16 + i])
+                    item_parameters["sales price unit"] = line[17 + i]
+                    item_parameters["routinglt"] = float(line[18 + i])
+                    item_parameters["standardroutinglt"] = float(line[19 + i])
+                    item_parameters["phantom"] = line[20 + i]
+                    item_parameters["standard cost"] = float(line[21 + i])
+                    item_parameters["material cost"] = float(line[22 + i])                
+                    item_parameters["operation cost"] = float(line[23 + i])
+                    item_parameters["bom qty"] = float(line[24 + i])
+                    
+                    all_parameters[item] = item_parameters # Prida parametry prave reseneho itemu do parametru vsech itemu z reportu.                      
+                    uz_projeto.append(item) # Prida prave reseny item do seznamu uz projetych itemu.
+
+                    # B) Aktualizuje routing v anonymni polozce z reseneho projektoveho dilu. 
+                    all_parameters[item[9:len(item)]]["routinglt"] = float(line[18 + i])
+                    all_parameters[item[9:len(item)]]["standardroutinglt"] = float(line[18 + i]) 
+
+                    i += krok # Krok na dalsi item v lince. 1/2
+                    item = line[1 + i] # Krok na dalsi item v lince. 2/2
+       
+    return all_parameters            
+
+# Vytvoreni kusovniku itemu jako list po jednotlivych linkach kusovniku. + Vytvoreni kusovniku s udajem ukazujicim realnou BOM qty.
+def vytvoreni_kusovniku(data, krok, parameters):
+    kusovnik_bom_qty = list()  # Kusovnik vsech linek:
+    for line in data:
+        line_valid = True # Overeni, zda linku pridavat do kusovniku, nebo ne.
+        # print(line)
+        i = 0
+        kusovnik_linky_bom = []
+        item = line[1]
+        while item != "0":
+            if line[5+i] == "19-JAN-38":
+                kusovnik_linky_bom.append((item, float(line[24+i])))
+                i += krok
+                item = line[1+i]
+            elif line[5+i] != "19-JAN-38":
+                if len(kusovnik_linky_bom) == 0: # Pokud se jedna o vrchol s neplatnym Expiry date → nepridavat linku do kusovniku.
+                    line_valid = False
+                    break    
+                elif item_typ(kusovnik_linky_bom[-1][0], parameters) == "P": # Pokud se jedna o neplatny poddil pod ciste nakupovanym dilem → pridat do kusovniku.
+                    # kusovnik_linky_bom.append(item)
+                    break
+                elif je_to_man_placard(kusovnik_linky_bom[-1][0], parameters) or je_to_id_placard(kusovnik_linky_bom[-1][0], parameters): # Pokud se jedna o neplatny poddil pod pod MAN PLACARDEM → pridat do kusovniku.
+                    kusovnik_linky_bom.append((item, float(line[24+i])))
+                    break
+                line_valid = False # Pokud se jedna o neplatny dil pod vyrabenym dilem a nesplnuje zadnou z podminek vyse → Nepridavat do kusovniku.
+                break    
+
+        if line_valid:
+            if kusovnik_linky_bom not in kusovnik_bom_qty:
+                kusovnik_bom_qty.append(kusovnik_linky_bom)  
+
+    kusovnik_bez_bom_qty = [[item[0] for item in line] for line in kusovnik_bom_qty]
+    
+    return kusovnik_bez_bom_qty, kusovnik_bom_qty
 
 def item_typ(item, parameters): 
     if (item[0:3] == "314") and (parameters.get(item).get("typ") == "Manufactured"):
@@ -235,6 +269,12 @@ def item_typ(item, parameters):
         typ = "N/A"
     return typ
 
+def je_to_PMP_dil(item):
+    return True if item[0:3] == "PMP" else False
+
+def je_z_lamphunu(item, parameters):
+    return True if parameters.get(item).get("supplier") == "I00000008" else False
+
 def je_to_man_placard(item, parameters):
     nazev = parameters.get(item).get("description")
     man_placard = "placar"
@@ -261,9 +301,9 @@ def level_pur_itemu(line, parameters, calc_mode):
             typ = item_typ(item, parameters)
             if typ == "M":
                 if len(line) > line.index(item) + 1:
-                    if parameters.get(line[line.index(item)+1]).get("exdate") != "19-JAN-38":
-                        print(f'XXXXItem {item} (safety stock {parameters.get(item).get("safetystock")}) v lince {line} ma pod sebou material {line[line.index(item)+1]} s neplatnym expiry date.')
-                        print(f'XXXXVyrabeny item {item}(ss {parameters.get(item).get("safetystock")}) pouze nakoupit.')
+                    if parameters.get(line[line.index(item)+1]).get("exdate") != "19-JAN-38" and not je_to_man_placard(item, parameters) and not je_to_id_placard(item, parameters):
+                        print(f'Item {item} (safety stock {parameters.get(item).get("safetystock")}) v lince {line} ma pod sebou material {line[line.index(item)+1]} s neplatnym expiry date.')
+                        print(f'Vyrabeny item {item}(ss {parameters.get(item).get("safetystock")}) pouze nakoupit.')
                         break
                     else:
                         vyrabenych_dilu_v_lince += 1       
@@ -276,7 +316,7 @@ def level_pur_itemu(line, parameters, calc_mode):
             if typ == "M" or (typ =="P" and parameters.get(item) != None and (parameters.get(item).get("routinglt") != 0 or parameters.get(item).get("standardroutinglt") != 0)):
                 if len(line) >= line.index(item):
                     if parameters.get(line[line.index(item)+1]).get("exdate") != "19-JAN-38":
-                        print(f'Item {item} (safety stock {parameters.get(item).get("safetystock")}) v lince {line} ma pod sebou material {line[line.index(item)+1]} s neplatnym expiry date.')
+                        print(f'item {item} (safety stock {parameters.get(item).get("safetystock")}) v lince {line} ma pod sebou material {line[line.index(item)+1]} s neplatnym expiry date.')
                         print(f'Vyrabeny item {item}(ss {parameters.get(item).get("safetystock")}) pouze nakoupit.')                       
                         break
                     else:
@@ -552,7 +592,7 @@ def purchased_lt(line, parameters, calc_mode): # Najde prvni nakupovany dil pod 
                             print("LT musi byt kladne cele cislo (pocet dni).")
                             continue
             elif parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock") != 0:
-                print(f'Item {line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]} (safety stock {parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock")}) v lince {line} ma pod sebou material {nejnizsi_nakupovany_dil_v_lince} s neplatnym expiry date.')
+                print(f'item {line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]} (safety stock {parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock")}) v lince {line} ma pod sebou material {nejnizsi_nakupovany_dil_v_lince} s neplatnym expiry date.')
                 print(f'Vyrabeny item {line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]}(ss {parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock")}) pouze nakoupit.')
                 nakupovany_lt_linky = parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("supplytime")             
             elif je_to_man_placard(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1], parameters):
@@ -596,7 +636,7 @@ def purchased_lt(line, parameters, calc_mode): # Najde prvni nakupovany dil pod 
                     nakupovane_dily_bez_lt.append(nejnizsi_nakupovany_dil_v_lince)
                     print("Pozor! Nakupovany dil " + str(nejnizsi_nakupovany_dil_v_lince) + " v lince " + str(line) + " ma v Purchase datech 0 LT!")
             elif parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock") != 0:
-                print(f'Item {line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]} (safety stock {parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock")}) v lince {line} ma pod sebou material {nejnizsi_nakupovany_dil_v_lince} s neplatnym expiry date.')
+                print(f'item {line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]} (safety stock {parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock")}) v lince {line} ma pod sebou material {nejnizsi_nakupovany_dil_v_lince} s neplatnym expiry date.')
                 print(f'Vyrabeny item {line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]}(ss {parameters.get(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1]).get("safetystock")}) pouze nakoupit.')
                 nakupovany_lt_linky = 0            
             elif je_to_man_placard(line[line.index(nejnizsi_nakupovany_dil_v_lince)-1], parameters):
@@ -619,12 +659,12 @@ def purchased_lt(line, parameters, calc_mode): # Najde prvni nakupovany dil pod 
 def lt_linky(line, parameters, missing_lts, calc_mode): # Vrati vysledny LT itemu a odpovidajici linku itemu.
     # print(f'Lt linky {line}')
     chyby_linky = []
+      
     routing_lt_output = routing_lt(line, parameters, missing_lts, calc_mode)
     purchase_lt_output = purchased_lt(line, parameters, calc_mode)
     
     # print(f'routingLT output: {routing_lt_output}')
     # print(f'purchaseLT output: {purchase_lt_output}')
-
     error_chybejici_routingy_linky = routing_lt_output[1][0]
     error_neplatne_routingy_linky = routing_lt_output[1][1]
     error_type = routing_lt_output[1][2]
@@ -636,37 +676,34 @@ def lt_linky(line, parameters, missing_lts, calc_mode): # Vrati vysledny LT item
     error_expiry_date_plt = purchase_lt_output[1][2]
     error_nakupovane_use_polozky = purchase_lt_output[1][3]
     error_manufactured_dily_bez_kusovniku = purchase_lt_output[1][4]
-
     lt_linky = routing_lt_output[0]+purchase_lt_output[0]
 
     chyby_linky.append(error_chybejici_routingy_linky)
-
     chyby_linky.append(error_neplatne_routingy_linky)
     if len(error_neplatne_routingy_linky) != 0:
-       lt_linky = 0 
+        lt_linky = 0 
     chyby_linky.append(error_type)
     if len(error_type) != 0:
-       lt_linky = 0 
+        lt_linky = 0 
     chyby_linky.append(error_expiry_date_rlt)
     if len(error_expiry_date_rlt) != 0:
-       lt_linky = 0 
+        lt_linky = 0 
     chyby_linky.append(error_itemy_bez_purchase_dat)    
     if len(error_itemy_bez_purchase_dat) != 0:
-       lt_linky = 0 
+        lt_linky = 0 
     chyby_linky.append(error_itemy_bez_purchase_lt)
-
     chyby_linky.append(error_expiry_date_plt)    
     if len(error_expiry_date_plt) != 0:
-       lt_linky = 0
+        lt_linky = 0
     chyby_linky.append(error_use_polozky_rlt)    
     if len(error_use_polozky_rlt) != 0:
-       lt_linky = 0
+        lt_linky = 0
     chyby_linky.append(error_nakupovane_use_polozky)    
     if len(error_nakupovane_use_polozky) != 0:
-       lt_linky = 0
+        lt_linky = 0
     chyby_linky.append(error_manufactured_dily_bez_kusovniku)    
     if len(error_manufactured_dily_bez_kusovniku) != 0:
-       lt_linky = 0
+        lt_linky = 0
 
     # print(f'vsechny chyby dilu linky {line} {chyby_linky}')
     # print(lt_linky)
@@ -971,11 +1008,14 @@ def chyby_linky(
                 if 'error8' not in vrchol_chyby:
                     vrchol_chyby.append('error8')                    
 
-def linka_k_zaplanovani(line, parameters):
+def linka_k_zaplanovani(line, parameters, polozky_pod_projekt_prepnout, platne_kalkulacni_projekty):
     #print(line)
     vse_v_lince = []
     for item in line:
         typ = item_typ(item, parameters)
+        id_placard = je_to_id_placard(item, parameters)
+        man_placard = je_to_man_placard(item, parameters)
+        placard = f'(MAN PLACARD)' if id_placard or man_placard else ""
         #print(item)
         #print(typ)
         if typ == "M":
@@ -983,11 +1023,19 @@ def linka_k_zaplanovani(line, parameters):
             if parameters.get(item).get("exdate") == "19-JAN-38":
                 if parameters.get(item).get("phantom") == "Yes":
                     if item [0:3] == "PMP":
-                        item_to_plan = f'{item}(PHANTOM)'
+                        if placard:
+                            item_to_plan = f'{item}(PHANTOM - PLACARD)'
+                        else:
+                            item_to_plan = f'{item}(PHANTOM)'
                         vse_v_lince.append(item_to_plan)
                     else:
-                        item_to_plan = f'PROJEKT_{item}(PHANTOM)'
+                        if placard:
+                            item_to_plan = f'PROJEKT_{item}(PHANTOM - PLACARD)'
+                        else:
+                            item_to_plan = f'PROJEKT_{item}(PHANTOM)'
                         vse_v_lince.append(item_to_plan)
+                        if line[0][0:9] in platne_kalkulacni_projekty:
+                            polozky_pod_projekt_prepnout.append(f'item {item}{placard}(PHANTOM) v lince {line}prepnout pod kalk. projekt')
                 elif line.index(item)+1 != len(line): # Pokud linka nekonci vyrabenym itemem:
                     if parameters.get(line[line.index(item)+1]).get("exdate") != "19-JAN-38": # Pokud poddil nema platny expiry date:
                         if item_typ(line[line.index(item)+1], parameters) == "M": # Pokud se jedna o vyrabeny poddil s neplatnym EXdate → neplatna linka → ingnorovat.
@@ -1005,12 +1053,16 @@ def linka_k_zaplanovani(line, parameters):
                     else:
                         item_to_plan = f'PROJEKT_{item}'
                         vse_v_lince.append(item_to_plan)
+                        if line[0][0:9] in platne_kalkulacni_projekty:
+                            polozky_pod_projekt_prepnout.append(f'item {item}{placard} v lince {line} prepnout pod kalk. projekt')
                 elif item [0:3] == "PMP":
                     item_to_plan = item
                     vse_v_lince.append(item_to_plan)
                 else:
                     item_to_plan = f'PROJEKT_{item}'
                     vse_v_lince.append(item_to_plan)
+                    if line[0][0:9] in platne_kalkulacni_projekty:
+                        polozky_pod_projekt_prepnout.append(f'item {item}{placard} v lince {line} prepnout pod kalk. projekt')
             else:
                 return                
         elif typ == "P":
@@ -1037,7 +1089,14 @@ def linka_k_zaplanovani(line, parameters):
         elif typ == "N/A":
             item_to_plan = f'ErrorType {item}'
             vse_v_lince.append(item_to_plan)
-    return(vse_v_lince)
+    # if (len(vse_v_lince) == 1) and (vse_v_lince[0][0:3] == "PMP" or vse_v_lince[0][0:9] == "PROJEKT_") and ("PLACARD" not in vse_v_lince[0]) and ("PHANTOM" not in vse_v_lince[0]):
+    if len(vse_v_lince) == 1:
+        if (vse_v_lince[0][0:3] == "PMP" or vse_v_lince[0][0:8] == "PROJEKT_") and ("PLACARD" not in vse_v_lince[0]):
+            pass      
+        else:
+            return(vse_v_lince)
+    else:
+        return(vse_v_lince)
 
 def zaplanovani_do_excelu(vse_k_zaplanovani):
     # print(vse_k_zaplanovani)
@@ -1167,15 +1226,61 @@ def catalogue_design_dodavatele_BFE(item, parameters):
     else:
         return False        
 
-def naceneni_do_tabulek(vrchol, parameters, program):
-    print(f'program {vrchol} {program}')
+def pmp_costing_ok(vrchol, parameters, kusovnik): # Zkontroluje, jestli nejaky PMP dil pod nacenovanym vrcholem ma chybejici routing → spatny routing / nezkalkulovany dil.
+                                                    # Vrati True / False, pripadne seznam dilu bez routingu
+    pmp_poddily_missing_routing = [f'{item[0:9]} {item[9:len(item)]}' for line in [line for line in kusovnik if line[0] == vrchol] for item in line if item[0:3] == "PMP" and parameters.get(item).get("routinglt") == 0 and parameters.get(item).get("standardroutinglt") == 0]
+    pmp_poddily_missing_routing = list(dict.fromkeys(pmp_poddily_missing_routing)) # Vytvori z listu Dictionary a pak zpatky list (odstraneni duplicit)
+    check = True if len(pmp_poddily_missing_routing) == 0 else False
+    return check, pmp_poddily_missing_routing
+
+def bom_qty_ok(vrchol, parameters, kusovnik_bom_qty): # Zkontorluje, zda nejaky dil pod nacenovanym vrcholem nema 0 mnozstvi materialu v kusovniku. Pokud ano, vrati vrchol jako chybu kusovniku.
+    error_bom_qty = set()    
+    for line in kusovnik_bom_qty:
+        if line[0][0] == vrchol:
+            for item in line:
+                if je_to_man_placard(item[0], parameters) or je_to_id_placard(item[0], parameters): # Pro MAN placard overi, ze pod sebou nema zadny poddil. Pokud ano → chyba smazat kusovnik PLACARDU.
+                    if len(line) > line.index(item)+1:
+                        print(f' POZOR! Vyrabeny PLACARD {item[0]} v lince {line} ma pod sebou nesmazany kusovnik.')
+                        error_bom_qty.add((item[0], str(line)))
+                
+                 # Pro vyrabene dily overi, ze jejich poddil nema 0 qty BOM. Pokud ano → chyba 0 qty kusovniku itemu.
+                if item[0][0:3] == "PMP": # PMP vyrabene veci.
+                    if item_typ(item[0][9:len(item[0])], parameters) == "M":
+                        if len(line) > line.index(item)+1:
+                            if line[line.index(item)+1][1] == 0:
+                                print(f' POZOR! Vyrabeny item {item[0]} v lince {line} ma pod sebou poddil/material s 0 qty BOM.')
+                                error_bom_qty.add((item[0], str(line)))
+                if item[0][0:3] != "PMP": # anonymni vyrabene veci.
+                    if item_typ(item[0], parameters) == "M":
+                        if len(line) > line.index(item)+1:
+                            if line[line.index(item)+1][1] == 0:
+                                print(f' POZOR! Vyrabeny item {item[0]} v lince {line} ma pod sebou poddil/material s 0 qty BOM.')
+                                error_bom_qty.add((item[0], str(line)))               
+                    # if parameters.get(item[0]).get("phantom").upper() == "YES":
+    check = True if len(error_bom_qty) == 0 else False
+    return check, error_bom_qty
+           
+def naceneni_do_tabulek(vrchol, parameters, program, kusovnik, kusovnik_bom_qty):
+    # print(f'program {vrchol} {program}')
     typ = item_typ(vrchol, parameters)
+    
     lok_dod = lokalni_dodavatele(vrchol, parameters)
-    print(f'{vrchol} lok dod {lok_dod}')
+    # print(f'{vrchol} lok dod {lok_dod}')
+    
     catalogue_design_BFE = catalogue_design_dodavatele_BFE(vrchol, parameters)
-    print(f'{vrchol} cat dod {catalogue_design_BFE}')
+    # print(f'{vrchol} cat dod {catalogue_design_BFE}')
+    
     is_man_placard = je_to_man_placard(vrchol, parameters)
+    
     is_ID_placard = je_to_id_placard(vrchol,parameters)
+    
+    # kontrola jestli vsechny vyrabene poddily vrholu maji nenulovu operation cost.
+    pmp_operation_costing_check = pmp_costing_ok(vrchol, parameters, kusovnik)
+    # print(f'routing 0 check: {pmp_operation_costing_check}')
+    
+    # kontrola jestli vsechny poddily maji nenulove mnozstvi nastavene v kusovniku.
+    bom_qty_check = bom_qty_ok(vrchol, parameters, kusovnik_bom_qty)
+    # print(f'TADY {bom_qty_check}')
 
     # PxM pole    
     # Nakupovane dily    
@@ -1270,16 +1375,20 @@ def naceneni_do_tabulek(vrchol, parameters, program):
     # date of entry pole
     entry_date_pole = date.today().strftime("%d/%m/%Y").replace("/", ".")
     # EUR cost price
-    if vrchol[0:3] == "PMP":
-        if parameters.get(vrchol).get("material cost") != 0 and parameters.get(vrchol).get("operation cost") != 0:
+    if is_man_placard or is_ID_placard:
+        cost_eur_pole = f'MAN PLACARD'
+    elif vrchol[0:3] == "PMP":
+        if parameters.get(vrchol).get("material cost") != 0 and pmp_operation_costing_check[0]:
             cost_eur_pole = parameters.get(vrchol).get("standard cost")
-        elif parameters.get(vrchol).get("material cost") == 0:
+        elif parameters.get(vrchol).get("material cost") == 0 and pmp_operation_costing_check[0]:
             cost_eur_pole = "missing material cost"
-        elif parameters.get(vrchol).get("operation cost") == 0:
-            cost_eur_pole = "missing operation cost"
+        elif not pmp_operation_costing_check[0]:
+            cost_eur_pole = f'missing routing on items {pmp_operation_costing_check[1]}'
+        elif not pmp_operation_costing_check[0] and parameters.get(vrchol).get("material cost") == 0:
+            cost_eur_pole = f'missing routing cost on items {pmp_operation_costing_check[1]}, missing material cost'
     else:
         if parameters.get(vrchol).get("material cost") == 0:
             cost_eur_pole = "missing material cost"
         else:
             cost_eur_pole = parameters.get(vrchol).get("standard cost")
-    return (pxm_pole, lok_dod_pole, id_placard_pole, brady_placard_pole, "", catalogue_dod_pole, pn_pole, description_pole, unit_pole, production_lt_pole, entry_date_pole, cost_eur_pole)
+    return (pxm_pole, lok_dod_pole, id_placard_pole, brady_placard_pole, "", catalogue_dod_pole, pn_pole, description_pole, unit_pole, production_lt_pole, entry_date_pole, cost_eur_pole), bom_qty_check
