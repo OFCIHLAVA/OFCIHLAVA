@@ -5,25 +5,28 @@ import time
 import openpyxl as excel
 from operator import le
 
-file_to_process = "report.txt"
 
+file_to_process = "report.txt"
 path_to_export = 'C:\\Users\\Ondrej.rott\\Documents\\Python\\Nove nacenovani\\LT LN export\\' + str(file_to_process)
+krok = pocet_sloupcu_dat_v_exportu_kusovniku_ze_cq = 24
 
 # CQ import nacteni dat kusovniku priprava
 data_import = KOMBO_funkce_kusovnik.nacteni_dat(path_to_export) # Naceteni dat z txt soboru a rozdeleni na jednotlive linky kusovniku. Vysledek ulozen jako list.
-#print(data_import)
-kusovnik = KOMBO_funkce_kusovnik.vytvoreni_kusovniku(data_import) # Vezme itemy v kazde lince a udela z nich kusovnik po linkach a ulozi do listu kusovnik  vseho.
-#print(kusovnik)
-parametry = KOMBO_funkce_kusovnik.databaze_parametru(data_import) # Pro kazdou linku vezme itemy z linky a ulozi jejich hodnoty ex date, lt a ss jako dict do listu all parameters.
-print(parametry)
-for kvp in parametry.items():
-    if len(kvp[1]) != 22:
+# print(data_import)
+parametry = KOMBO_funkce_kusovnik.databaze_parametru(data_import, krok) # Pro kazdou linku vezme itemy z linky a ulozi jejich hodnoty ex date, lt a ss jako dict do listu all parameters.
+# print(parametry)
+for kvp in parametry.items(): # Kontrola, ze vsechny polozky z reportu maji vyplnene v parametrech vsechny hodnoty.
+    if len(kvp[1]) != (krok-1):
         print(kvp)
         print(len(kvp[1]))
+kusovnik, kusovnik_bom_qty = KOMBO_funkce_kusovnik.vytvoreni_kusovniku(data_import, krok, parametry) # Vezme itemy v kazde lince a udela z nich kusovnik po linkach a ulozi do listu kusovnik  vseho.
+# for line in kusovnik:
+#     print(line)
+# for line in kusovnik_bom_qty:
+#     print(line)
 data_import.clear()
 
 # Priprava databaze pro zjistovani programu SFE/BFE/MIX
-
 path_kusovniky_databaze = 'C:\\Users\\Ondrej.rott\\Documents\\Python\\Nove nacenovani\\Programy\\databaze boud s kusovniky.txt'
 path_program_databaze = 'C:\\Users\\Ondrej.rott\\Documents\\Python\\Nove nacenovani\\Programy\\seznam programu.txt'
 
@@ -38,6 +41,8 @@ max_lt_itemu = 0
 i=0
 vysledek = []
 multivysledek = []
+
+# Chyby
 vsechny_chybejici_routingy = []
 vsechny_neplatne_routingy = []
 vsechny_vyrabene_use_polozky = []
@@ -46,10 +51,14 @@ vsechny_nakupovane_bez_puchase_lt = []
 vsechny_nakupovane_use_polozky = []
 vsechny_itemy_typ_error = []
 vsechny_manufactured_dily_bez_kusovniku = []
+vsechny_vyrabene_bom_qty_0 = []
+
+vrchol_chyby = []
+
+# Zaplanovani do txt. souboru
 vrchol_k_zaplanovani = []
 vse_k_zaplanovani = []
 vsechny_manufactured_polozky_pod_projekt = []
-vrchol_chyby = []
 
 # Naceneni do tabulek priprava
 uz_nacenene_vrcholy = []
@@ -57,6 +66,7 @@ sfe_tabulka = []
 bfe_tabulka = []
 neznamy_program_tabulka = []
 zatim_nenacenitelne_itemy_tabulka = []
+
 # Zadavani platnych kalkulacnich projektu do nastaveni
 with open('C:\\Users\\Ondrej.rott\\Documents\\Python\\Nove nacenovani\\nastaveni\\config.txt', 'r') as config:
     nastaveni_data = config.readlines()
@@ -156,7 +166,6 @@ while mode_set == False:
     print(f'Kalkulacni mod: {calculation_mode}.')
     # print(mode_set)
 
-
 # Vytvoreni souboru pro zaplanovani itemu.
 with open("itemy k zaplanovani.txt", "w") as output_file:
 
@@ -186,14 +195,20 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 ###
             else: # Novy vrchol.
                 vysledek.append(KOMBO_funkce_kusovnik.vysledek_itemu(nejdelsi_linka, parametry, vrchol, max_lt_itemu, chybejici_routingy_equals, vrchol_chyby, calculation_mode))# Sestaveni nejdelsi linky soucasneho vrcholu a jejiho LT.                  
-                ###OOO
+                
+                ### Naceneni vysledku do nacenovacich tabulek
                 if calculation_mode == "nacenovani":
                 # 1. Pokud se jedna o anonymni ciste nakupovanou vec ne z lamphunu. → rovnou nacenit do tabulky 
                     if vrchol[0:3] != "PMP" and parametry.get(vrchol).get("supplier") != "0" and parametry.get(vrchol).get("supplier") != "I00000008" and parametry.get(vrchol).get("nakupci") != "0" and parametry.get(vrchol).get("nakupci") != "PZP001":                 
                         # print(f'ciste ano naku polozka {vrchol}')
                         program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]                   
                         # print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                        naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                        # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                        for item in bom_qty_check[1]:
+                            if item not in vsechny_vyrabene_bom_qty_0:
+                                vsechny_vyrabene_bom_qty_0.append(item)
+
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
@@ -208,7 +223,12 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                         # print(f'vyrabena pod platnym kalkulakem {vrchol}')
                         program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]    
                         # print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                        naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                        # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                        for item in bom_qty_check[1]:
+                            if item not in vsechny_vyrabene_bom_qty_0:
+                                vsechny_vyrabene_bom_qty_0.append(item)
+
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
@@ -228,7 +248,12 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                             else:                           
                                 program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
                             # print(f'vrchol {vrchol} - {program}')
-                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                            naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                            # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                            for item in bom_qty_check[1]:
+                                if item not in vsechny_vyrabene_bom_qty_0:
+                                    vsechny_vyrabene_bom_qty_0.append(item)
+
                             if program in ("SFE", "MIX"):
                                 sfe_tabulka.append(naceneny_item)
                             elif program == "BFE":
@@ -250,7 +275,6 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                         else:                        
                             if vrchol not in uz_nacenene_vrcholy:
                                 zatim_nenacenitelne_itemy_tabulka.append(vrchol)
-                ###OOO
 
                 if len(vrchol_chyby) != 0:
                     print(f'Vrchol {vrchol} chyby {vrchol_chyby}')
@@ -303,14 +327,20 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 i+=1
                 ###          
                 vysledek.append(KOMBO_funkce_kusovnik.vysledek_itemu(nejdelsi_linka, parametry, vrchol, max_lt_itemu, chybejici_routingy_equals, vrchol_chyby, calculation_mode))# Sestaveni nejdelsi linky soucasneho vrcholu a jejiho LT.
-                ###OOO
+                
+                ### Naceneni vysledku do nacenovacich tabulek
                 if calculation_mode == "nacenovani":
                 # 1. Pokud se jedna o anonymni ciste nakupovanou vec ne z lamphunu. → rovnou nacenit do tabulky 
                     if vrchol[0:3] != "PMP" and parametry.get(vrchol).get("supplier") != "0" and parametry.get(vrchol).get("supplier") != "I00000008" and parametry.get(vrchol).get("nakupci") != "0" and parametry.get(vrchol).get("nakupci") != "PZP001":                 
                         # print(f'ciste ano naku polozka {vrchol}')
                         program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]                   
                         # print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                        naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                        # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                        for item in bom_qty_check[1]:
+                            if item not in vsechny_vyrabene_bom_qty_0:
+                                vsechny_vyrabene_bom_qty_0.append(item)
+
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
@@ -325,7 +355,12 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                         # print(f'vyrabena pod platnym kalkulakem {vrchol}')
                         program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]    
                         # print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                        naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                        # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                        for item in bom_qty_check[1]:
+                            if item not in vsechny_vyrabene_bom_qty_0:
+                                vsechny_vyrabene_bom_qty_0.append(item)
+
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
@@ -345,7 +380,12 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                             else:                           
                                 program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
                             # print(f'vrchol {vrchol} - {program}')
-                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                            naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                            # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                            for item in bom_qty_check[1]:
+                                if item not in vsechny_vyrabene_bom_qty_0:
+                                    vsechny_vyrabene_bom_qty_0.append(item)
+
                             if program in ("SFE", "MIX"):
                                 sfe_tabulka.append(naceneny_item)
                             elif program == "BFE":
@@ -367,7 +407,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                         else:                        
                             if vrchol not in uz_nacenene_vrcholy:
                                 zatim_nenacenitelne_itemy_tabulka.append(vrchol)
-                ###OOO
+
                 if len(vrchol_chyby) != 0:
                     print(f'Vrchol {vrchol} chyby {vrchol_chyby}')
 
@@ -379,14 +419,20 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
 
             else: # Novy vrchol.
                 vysledek.append(KOMBO_funkce_kusovnik.vysledek_itemu(nejdelsi_linka, parametry, vrchol, max_lt_itemu, chybejici_routingy_equals, vrchol_chyby, calculation_mode))# Sestaveni nejdelsi linky soucasneho vrcholu a jejiho LT.            
-                ###OOO
+                
+                ### Naceneni vysledku do nacenovacich tabulek
                 if calculation_mode == "nacenovani":
                 # 1. Pokud se jedna o anonymni ciste nakupovanou vec ne z lamphunu. → rovnou nacenit do tabulky 
                     if vrchol[0:3] != "PMP" and parametry.get(vrchol).get("supplier") != "0" and parametry.get(vrchol).get("supplier") != "I00000008" and parametry.get(vrchol).get("nakupci") != "0" and parametry.get(vrchol).get("nakupci") != "PZP001":                 
                         # print(f'ciste ano naku polozka {vrchol}')
                         program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]                   
                         # print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                        naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                        # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                        for item in bom_qty_check[1]:
+                            if item not in vsechny_vyrabene_bom_qty_0:
+                                vsechny_vyrabene_bom_qty_0.append(item)
+
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
@@ -401,7 +447,12 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                         # print(f'vyrabena pod platnym kalkulakem {vrchol}')
                         program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]    
                         # print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                        naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                        # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                        for item in bom_qty_check[1]:
+                            if item not in vsechny_vyrabene_bom_qty_0:
+                                vsechny_vyrabene_bom_qty_0.append(item)
+
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
@@ -421,7 +472,12 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                             else:                           
                                 program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
                             # print(f'vrchol {vrchol} - {program}')
-                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                            naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                            # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                            for item in bom_qty_check[1]:
+                                if item not in vsechny_vyrabene_bom_qty_0:
+                                    vsechny_vyrabene_bom_qty_0.append(item)
+
                             if program in ("SFE", "MIX"):
                                 sfe_tabulka.append(naceneny_item)
                             elif program == "BFE":
@@ -443,7 +499,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                         else:                        
                             if vrchol not in uz_nacenene_vrcholy:
                                 zatim_nenacenitelne_itemy_tabulka.append(vrchol)
-                ###OOO
+
                 if len(vrchol_chyby) != 0:
                     print(f'Vrchol {vrchol} chyby {vrchol_chyby}')
 
@@ -474,14 +530,20 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                 i+=1
                 ###
                 vysledek.append(KOMBO_funkce_kusovnik.vysledek_itemu(nejdelsi_linka, parametry, vrchol, max_lt_itemu, chybejici_routingy_equals, vrchol_chyby, calculation_mode))# Sestaveni nejdelsi linky soucasneho vrcholu a jejiho LT.    
-                ###OOO
+                
+                ### Naceneni vysledku do nacenovacich tabulek
                 if calculation_mode == "nacenovani":
                 # 1. Pokud se jedna o anonymni ciste nakupovanou vec ne z lamphunu. → rovnou nacenit do tabulky 
                     if vrchol[0:3] != "PMP" and parametry.get(vrchol).get("supplier") != "0" and parametry.get(vrchol).get("supplier") != "I00000008" and parametry.get(vrchol).get("nakupci") != "0" and parametry.get(vrchol).get("nakupci") != "PZP001":                 
                         # print(f'ciste ano naku polozka {vrchol}')
                         program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]                   
                         # print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                        naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                        # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                        for item in bom_qty_check[1]:
+                            if item not in vsechny_vyrabene_bom_qty_0:
+                                vsechny_vyrabene_bom_qty_0.append(item)
+
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
@@ -496,7 +558,12 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                         # print(f'vyrabena pod platnym kalkulakem {vrchol}')
                         program = funkce_prace.dotaz_pn_program(vrchol[9:len(vrchol)], databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]    
                         # print(f'vrchol {vrchol} - {program}')
-                        naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                        naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                        # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                        for item in bom_qty_check[1]:
+                            if item not in vsechny_vyrabene_bom_qty_0:
+                                vsechny_vyrabene_bom_qty_0.append(item)
+
                         if program in ("SFE", "MIX"):
                             sfe_tabulka.append(naceneny_item)
                         elif program == "BFE":
@@ -516,7 +583,12 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                             else:                           
                                 program = funkce_prace.dotaz_pn_program(vrchol, databaze_pro_dotaz_programy, kvp_programy)[0].split(":")[1]
                             # print(f'vrchol {vrchol} - {program}')
-                            naceneny_item = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik)
+                            naceneny_item, bom_qty_check = KOMBO_funkce_kusovnik.naceneni_do_tabulek(vrchol, parametry, program, kusovnik, kusovnik_bom_qty)
+                            # zachyceni vyrabenych itemu s 0 bom qty / PLACARDU s kusovnikem a pridani do chyb.
+                            for item in bom_qty_check[1]:
+                                if item not in vsechny_vyrabene_bom_qty_0:
+                                    vsechny_vyrabene_bom_qty_0.append(item)
+
                             if program in ("SFE", "MIX"):
                                 sfe_tabulka.append(naceneny_item)
                             elif program == "BFE":
@@ -538,7 +610,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
                         else:                        
                             if vrchol not in uz_nacenene_vrcholy:
                                 zatim_nenacenitelne_itemy_tabulka.append(vrchol)
-                ###OOO
+
                 if len(vrchol_chyby) != 0:
                     print(f'Vrchol {vrchol} chyby {vrchol_chyby}')
 
@@ -550,6 +622,7 @@ with open("itemy k zaplanovani.txt", "w") as output_file:
 
 output_file.close()
 
+## Vytisknuti vysledku a chyb na konci programu.
 print("\n")
 print("SALES LT (kalendarni dny):\n")
 
@@ -557,14 +630,13 @@ for item in vysledek:
     print(item)
 print("\n")
 
-
 if len(vsechny_chybejici_routingy) != 0:
     print("Seznam vsech chybejicich routingu z reportu:")
 
     for item in vsechny_chybejici_routingy:
         if item[0:3] == "PMP":
             print(f'{item[0:9]}:{item[9:len(item)]}:{parametry.get(item).get("description")}')
-        elif parametry.get(vrchol).get("supplier") == "I00000008":    
+        elif parametry.get(item).get("supplier") == "I00000008":    
             print(f'Lamphun_A:{item}:{parametry.get(item).get("description")}')
         else:
             print(f'anonymni_:{item}:{parametry.get(item).get("description")}')
@@ -574,7 +646,7 @@ if len(vsechny_neplatne_routingy) != 0:
     for item in vsechny_neplatne_routingy:
         if item[0:3] == "PMP":
             print(item[0:9]+":"+str(item[9:len(item)]))
-        elif parametry.get(vrchol).get("supplier") == "I00000008":    
+        elif parametry.get(item).get("supplier") == "I00000008":    
             print("Lamphun_A:"+str(item))
         else:
             print("anonymni_:"+str(item))         
@@ -599,7 +671,7 @@ if len(vsechny_vyrabene_use_polozky) != 0:
     for item in vsechny_vyrabene_use_polozky:
         if item[0:3] == "PMP":
             print(item[0:9]+":"+str(item[9:len(item)]))
-        elif parametry.get(vrchol).get("supplier") == "I00000008":    
+        elif parametry.get(item).get("supplier") == "I00000008":    
             print("Lamphun_A:"+str(item))
         else:
             print("anonymni_:"+str(item))
@@ -614,10 +686,21 @@ if len(vsechny_manufactured_dily_bez_kusovniku) != 0:
     for item in vsechny_manufactured_dily_bez_kusovniku:
         if item[0:3] == "PMP":
             print(item[0:9]+":"+str(item[9:len(item)]))
-        elif parametry.get(vrchol).get("supplier") == "I00000008":    
+        elif parametry.get(item).get("supplier") == "I00000008":    
             print("Lamphun_A:"+str(item))
         else:
             print("anonymni_:"+str(item))
+
+if len(vsechny_vyrabene_bom_qty_0) != 0:
+    print("\nSeznam Manufactured dilu s 0 BOM qtu / PLACARDu s nesmazanym kusovnikem:")
+    print(vsechny_vyrabene_bom_qty_0)
+    for item in vsechny_vyrabene_bom_qty_0:
+        if item[0][0:3] == "PMP":
+            print(f'{item[0][0:9]}:{item[0][9:len(item[0])]}:{parametry.get(item[0]).get("description")} v lince {item[1]}')
+        elif parametry.get(item[0]).get("supplier") == "I00000008":    
+            print(f'Lamphun_A:{item[0]}:{parametry.get(item[0]).get("description")} v lince {item[1]}')
+        else:
+            print(f'anonymni_:{item[0]}:{parametry.get(item[0]).get("description")} v lince {item[1]}')            
 
 if len(vsechny_manufactured_polozky_pod_projekt) != 0:
     print("\nSeznam Manufactured dilu PREPNOUT POD PROJEKT:")
