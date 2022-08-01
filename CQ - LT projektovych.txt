@@ -1,6 +1,7 @@
 viewpoint all_tables;
 
 define
+
   access bill_of_material,
     set bill_of_material:manufactured_item=items:item,
     one to many;
@@ -9,6 +10,14 @@ define
     set item_purchase_data:item = items:item,
     one to one;
   
+  file partners_name_vrchol = access business_partners_tccom100,
+  set business_partner = pur_data_vrchol:buy_from_business_partner,
+  one to one;
+
+  file sales_data_vrchol = access item_sales_data,
+  set item_sales_data:item = items:item,
+  one to one;
+
   file safety_stock_vrchol = access items_ordering,
     set items_ordering:item = items:item,
     one to one;
@@ -25,6 +34,10 @@ define
     set hf_std_routing_operations:routing = routing_std_kod_lt_vrchol:standard_routing_code,
     one to one;
   
+  file costing_data_vrchol = access item_costing_data,
+    set item_costing_data:item = items:item,
+    one to one;
+  
   file items_lvl_1 = access items,
     set items:item = bill_of_material:item,
     one to one;
@@ -32,6 +45,14 @@ define
   file pur_data_lvl_1 = access item_purchase_data,
     set item_purchase_data:item = bill_of_material:item,
     one to one;
+
+  file partners_name_lvl_1 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_1:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_1 = access item_sales_data,
+  set item_sales_data:item = bill_of_material:item,
+  one to one;
   
   file safety_stock_lvl_1 = access items_ordering,
     set items_ordering:item = bill_of_material:item,
@@ -48,6 +69,10 @@ define
   file standard_routing_kod_lvl_1 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_1:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_1 = access item_costing_data,
+    set item_costing_data:item = bill_of_material:item,
+    one to one;
   
   file bom_level_2 = access bill_of_material,
     set bill_of_material:manufactured_item = bill_of_material:item,
@@ -60,7 +85,15 @@ define
   file pur_data_lvl_2 = access item_purchase_data,
     set item_purchase_data:item = bom_level_2:item,
     one to one;
-  
+
+  file partners_name_lvl_2 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_2:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_2 = access item_sales_data,
+  set item_sales_data:item = bom_level_2:item,
+  one to one;  
+
   file safety_stock_lvl_2 = access items_ordering,
     set items_ordering:item = bom_level_2:item,
     one to one;
@@ -76,6 +109,10 @@ define
   file standard_routing_kod_lvl_2 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_2:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_2 = access item_costing_data,
+    set item_costing_data:item = bom_level_2:item,
+    one to one;
   
   file bom_level_3 = access bill_of_material,
     set bill_of_material:manufactured_item = bom_level_2:item,
@@ -88,6 +125,14 @@ define
   file pur_data_lvl_3 = access item_purchase_data,
     set item_purchase_data:item = bom_level_3:item,
     one to one;
+
+  file partners_name_lvl_3 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_3:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_3 = access item_sales_data,
+  set item_sales_data:item = bom_level_3:item,
+  one to one; 
   
   file safety_stock_lvl_3 = access items_ordering,
     set items_ordering:item = bom_level_3:item,
@@ -104,6 +149,10 @@ define
   file standard_routing_kod_lvl_3 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_3:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_3 = access item_costing_data,
+    set item_costing_data:item = bom_level_3:item,
+    one to one;
   
   file bom_level_4 = access bill_of_material,
     set bill_of_material:manufactured_item = bom_level_3:item,
@@ -116,6 +165,14 @@ define
   file pur_data_lvl_4 = access item_purchase_data,
     set item_purchase_data:item = bom_level_4:item,
     one to one;
+
+  file partners_name_lvl_4 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_4:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_4 = access item_sales_data,
+  set item_sales_data:item = bom_level_4:item,
+  one to one; 
   
   file safety_stock_lvl_4 = access items_ordering,
     set items_ordering:item = bom_level_4:item,
@@ -132,6 +189,10 @@ define
   file standard_routing_kod_lvl_4 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_4:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_4 = access item_costing_data,
+    set item_costing_data:item = bom_level_4:item,
+    one to one;
   
   file bom_level_5 = access bill_of_material,
     set bill_of_material:manufactured_item = bom_level_4:item,
@@ -144,6 +205,14 @@ define
   file pur_data_lvl_5 = access item_purchase_data,
     set item_purchase_data:item = bom_level_5:item,
     one to one;
+
+  file partners_name_lvl_5 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_5:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_5 = access item_sales_data,
+  set item_sales_data:item = bom_level_5:item,
+  one to one; 
   
   file safety_stock_lvl_5 = access items_ordering,
     set items_ordering:item = bom_level_5:item,
@@ -160,6 +229,10 @@ define
   file standard_routing_kod_lvl_5 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_5:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_5 = access item_costing_data,
+    set item_costing_data:item = bom_level_5:item,
+    one to one;
   
   file bom_level_6 = access bill_of_material,
     set bill_of_material:manufactured_item = bom_level_5:item,
@@ -172,6 +245,14 @@ define
   file pur_data_lvl_6 = access item_purchase_data,
     set item_purchase_data:item = bom_level_6:item,
     one to one;
+
+  file partners_name_lvl_6 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_6:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_6 = access item_sales_data,
+  set item_sales_data:item = bom_level_6:item,
+  one to one; 
   
   file safety_stock_lvl_6 = access items_ordering,
     set items_ordering:item = bom_level_6:item,
@@ -188,6 +269,10 @@ define
   file standard_routing_kod_lvl_6 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_6:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_6 = access item_costing_data,
+    set item_costing_data:item = bom_level_6:item,
+    one to one;
   
   file bom_level_7 = access bill_of_material,
     set bill_of_material:manufactured_item = bom_level_6:item,
@@ -200,6 +285,14 @@ define
   file pur_data_lvl_7 = access item_purchase_data,
     set item_purchase_data:item = bom_level_7:item,
     one to one;
+
+  file partners_name_lvl_7 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_7:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_7 = access item_sales_data,
+  set item_sales_data:item = bom_level_7:item,
+  one to one; 
   
   file safety_stock_lvl_7 = access items_ordering,
     set items_ordering:item = bom_level_7:item,
@@ -216,6 +309,10 @@ define
   file standard_routing_kod_lvl_7 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_7:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_7 = access item_costing_data,
+    set item_costing_data:item = bom_level_7:item,
+    one to one;
   
   file bom_level_8 = access bill_of_material,
     set bill_of_material:manufactured_item = bom_level_7:item,
@@ -228,6 +325,14 @@ define
   file pur_data_lvl_8 = access item_purchase_data,
     set item_purchase_data:item = bom_level_8:item,
     one to one;
+
+  file partners_name_lvl_8 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_8:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_8 = access item_sales_data,
+  set item_sales_data:item = bom_level_8:item,
+  one to one; 
   
   file safety_stock_lvl_8 = access items_ordering,
     set items_ordering:item = bom_level_8:item,
@@ -244,6 +349,10 @@ define
   file standard_routing_kod_lvl_8 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_8:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_8 = access item_costing_data,
+    set item_costing_data:item = bom_level_8:item,
+    one to one;
   
   file bom_level_9 = access bill_of_material,
     set bill_of_material:manufactured_item = bom_level_8:item,
@@ -256,6 +365,14 @@ define
   file pur_data_lvl_9 = access item_purchase_data,
     set item_purchase_data:item = bom_level_9:item,
     one to one;
+
+  file partners_name_lvl_9 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_9:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_9 = access item_sales_data,
+  set item_sales_data:item = bom_level_9:item,
+  one to one; 
   
   file safety_stock_lvl_9 = access items_ordering,
     set items_ordering:item = bom_level_9:item,
@@ -272,6 +389,10 @@ define
   file standard_routing_kod_lvl_9 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_9:standard_routing_code,
     one to one;
+
+  file costing_data_lvl_9 = access item_costing_data,
+    set item_costing_data:item = bom_level_9:item,
+    one to one;
   
   file bom_level_10 = access bill_of_material,
     set bill_of_material:manufactured_item = bom_level_9:item,
@@ -284,6 +405,14 @@ define
   file pur_data_lvl_10 = access item_purchase_data,
     set item_purchase_data:item = bom_level_10:item,
     one to one;
+
+  file partners_name_lvl_10 = access business_partners_tccom100,
+  set business_partner = pur_data_lvl_10:buy_from_business_partner,
+  one to one;
+
+  file sales_data_lvl_10 = access item_sales_data,
+  set item_sales_data:item = bom_level_10:item,
+  one to one; 
   
   file safety_stock_lvl_10 = access items_ordering,
     set items_ordering:item = bom_level_10:item,
@@ -299,6 +428,10 @@ define
   
   file standard_routing_kod_lvl_10 = access hf_std_routing_operations,
     set hf_std_routing_operations:routing = routing_std_kod_lt_lvl_10:standard_routing_code,
+    one to one;
+
+  file costing_data_lvl_10 = access item_costing_data,
+    set item_costing_data:item = bom_level_10:item,
     one to one;
 
   
@@ -328,12 +461,11 @@ where
   
   and items:item [10,47] one of
 
-  "642400-7", "243544-11", "679076-11", "153760-51", "660851-21",
-        "673355-211", "649248-211", "602259-3", "602101-27", "216002-16",
-        "603879-9", "247515-040-1-730", "660870-11", "211505-71",
-        "216036-36", "247514-5", "225506-3", "209510-381", "694700-21",
-        "231500-11", "243501-11", "237691-53", "622305-31", "626939-21",
-        "237691-121", "629401-51741", "166959-21", "243548-5"
+"683567-60121", "683567-60221", "683567-61021", "683567-61231",
+        "683567-61251", "624567-21", "624567-31"
+
+
+
 --and
 --(bom_level_10:expiry_date > todaysdate or bom_level_10:expiry_date = null)
 --and
@@ -357,299 +489,556 @@ where
 list/domain="items"/duplicates
   
   --Vrchol:
-  "|"/duplicates -- Musi tu bzt hvezdicka aby to pak program spravne nacucnul
-  if items:item contains "\" then replace(items:item,"\","/") else items:item/heading="// item vrchol"/duplicates 
+  "|"/duplicates -- Musi tu byt svisla cara "|" hvezdicka aby to pak program spravne nacucnul. Program pouziva | jako separator jednotlivych poli dat.
+  if items:item contains "\" then replace(items:item,"\","/") else items:item/heading="|item vrchol ||"/duplicates 
   "|"/duplicates
   items:description/duplicates
   "|"/duplicates 
-  items:item_type_text/heading="Item type vrchol"/duplicates 
+  items:item_type_text/heading="|| Item type vrchol ||"/duplicates 
   "|"/duplicates 
-  "0"/heading="// WHS vrchol"/duplicates 
+  "0"/heading="|| WHS vrchol ||"/duplicates 
   "|"/duplicates 
-  "19-JAN-38"/heading="//exdate vrchol"/duplicates 
+  "19-JAN-38"/heading="|| exdate vrchol ||"/duplicates 
   "|"/duplicates 
-  pur_data_vrchol:supply_time/heading="//pur LT vrchol"/duplicates 
-  "|"/duplicates 
-  pur_data_vrchol:buy_from_business_partner/heading="//supplier vrchol"/duplicates
+  pur_data_vrchol:supply_time/heading="|| pur LT vrchol ||"/duplicates 
   "|"/duplicates
-  pur_data_vrchol:buyer/heading="//nakupci vrchol"/duplicates
+  pur_data_vrchol:purchase_price/heading="|| pur price vrchol ||"/duplicates
+  "|"/duplicates
+  pur_data_vrchol:purchase_currency/heading="|| pur currency vrchol ||"/duplicates
   "|"/duplicates 
-  Safety_stock_vrchol:safety_stock/heading="//safety stock vrchol"/duplicates 
+  pur_data_vrchol:purchase_price_unit/heading="|| pur price units vrchol ||"/duplicates
+  "|"/duplicates
+  pur_data_vrchol:buy_from_business_partner/heading="|| supplier vrchol ||"/duplicates
+  "|"/duplicates
+  partners_name_vrchol:name/heading="|| supplier name vrchol ||"/duplicates
+  "|"/duplicates  
+  pur_data_vrchol:buyer/heading="|| nakupci vrchol ||"/duplicates
+  "|"/duplicates
+  Safety_stock_vrchol:order_system_text/heading="|| order system vrchol ||"/duplicates
+  "|"/duplicates   
+  Safety_stock_vrchol:safety_stock/heading="|| safety stock vrchol ||"/duplicates 
   "|"/duplicates 
-  routing_LT_vrchol:ltoperation/heading="//routing LT vrchol"/duplicates 
+  sales_data_vrchol:sales_price_group/heading="|| sales group LN vrchol ||"/duplicates
+  "|"/duplicates
+  sales_data_vrchol:cdf_sales_leadtime/heading="|| sales LT LN vrchol ||"/duplicates
+  "|"/duplicates
+  sales_data_vrchol:sales_price_unit/heading="|| sales price units LN vrchol ||"/duplicates
   "|"/duplicates 
-  standard_routing_kod_vrchol:ltoperation/heading="//STD routing LT vrchol"/duplicates 
+  routing_LT_vrchol:ltoperation/heading="|| routing LT vrchol ||"/duplicates 
   "|"/duplicates 
-  "0"/heading="//PHANTOM? vrchol"/duplicates 
-  
-  
-  
+  standard_routing_kod_vrchol:ltoperation/heading="STD || routing LT vrchol ||"/duplicates 
+  "|"/duplicates 
+  "0"/heading="|| PHANTOM? vrchol ||"/duplicates
+  "|"/duplicates
+  costing_data_vrchol:estimated_standard_cost_1/heading="|| standard est cost [EUR] vrchol ||"/duplicates
+  "|"/duplicates
+  costing_data_vrchol:estimated_material_cost_1/heading="|| material cost [EUR] vrchol ||"/duplicates
+  "|"/duplicates
+  costing_data_vrchol:estimated_operational_cost_1/heading="|| Operation cost [EUR] vrchol ||"/duplicates
+  "|"/duplicates
+  "1"/heading="|| BOM qty vrchol ||"/duplicates    
+
+
   --LVL 1:
   "|"/duplicates 
-  if bill_of_material:item contains "\" then replace(bill_of_material:item,"\","/") else bill_of_material:item/heading="// item lvl 1"/duplicates 
+  if bill_of_material:item contains "\" then replace(bill_of_material:item,"\","/") else bill_of_material:item/heading="|item lvl 1 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_1:search_key_i/heading="description lvl 1"/duplicates 
+  items_lvl_1:description/heading="|| description lvl 1 ||"/duplicates 
   "|"/duplicates 
-  items_lvl_1:item_type_text/heading="Item type lvl 1"/duplicates 
+  items_lvl_1:item_type_text/heading="|| Item type lvl 1 ||"/duplicates 
   "|"/duplicates 
-  bill_of_material:wareh/heading="//WHS lvl 1"/duplicates 
+  bill_of_material:wareh/heading="|| WHS lvl 1 ||"/duplicates 
   "|"/duplicates 
-  bill_of_material:expiry_date_dz/heading="//exdate lvl 1"/duplicates 
+  bill_of_material:expiry_date_dz/heading="|| exdate lvl 1 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_1:supply_time/heading="//pur LT lvl 1"/duplicates 
+  pur_data_lvl_1:supply_time/heading="|| pur LT lvl 1 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_1:buy_from_business_partner/heading="//supplier lvl 1"/duplicates
+  pur_data_lvl_1:purchase_price/heading="|| pur price lvl 1 ||"/duplicates
   "|"/duplicates
-  pur_data_lvl_1:buyer/heading="//nakupci lvl 1"/duplicates 
+  pur_data_lvl_1:purchase_currency/heading="|| pur currency lvl 1 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_1:safety_stock/heading="//safety stock lvl 1"/duplicates 
+  pur_data_lvl_1:purchase_price_unit/heading="|| pur price units lvl 1 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_1:buy_from_business_partner/heading="|| supplier lvl 1 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_1:name/heading="|| supplier name lvl_1"/duplicates
   "|"/duplicates 
-  routing_LT_lvl_1:ltoperation/heading="//routing LT lvl 1"/duplicates 
+  pur_data_lvl_1:buyer/heading="|| nakupci lvl 1 ||"/duplicates 
+  "|"/duplicates
+  Safety_stock_lvl_1:order_system_text/heading="|| order system lvl 1 ||"/duplicates
+  "|"/duplicates   
+  Safety_stock_lvl_1:safety_stock/heading="|| safety stock lvl 1 ||"/duplicates 
+  "|"/duplicates
+  sales_data_lvl_1:sales_price_group/heading="|| sales group LN lvl 1 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_1:cdf_sales_leadtime/heading="|| sales LT LN lvl 1 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_1:sales_price_unit/heading="|| sales price units LN lvl 1 ||"/duplicates
   "|"/duplicates 
-  standard_routing_kod_lvl_1:ltoperation/heading="//STD routing LT lvl 1"/duplicates 
+  routing_LT_lvl_1:ltoperation/heading="|| routing LT lvl 1 ||"/duplicates 
   "|"/duplicates 
-  bill_of_material:phantom_text/heading="//PHANTOM? lvl 1"/duplicates 
-  
+  standard_routing_kod_lvl_1:ltoperation/heading="STD || routing LT lvl 1 ||"/duplicates 
+  "|"/duplicates 
+  bill_of_material:phantom_text/heading="|| PHANTOM? lvl 1 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_1:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 1 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_1:estimated_material_cost_1/heading="|| material cost [EUR] lvl 1 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_1:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 1 ||"/duplicates  
+  "|"/duplicates
+  bill_of_material:net_quantity/heading="|| BOM qty lvl 1 ||"/duplicates
+
   --LVL 2:
   "|"/duplicates
-  if bom_level_2:item contains "\" then replace(bom_level_2:item,"\","/") else bom_level_2:item/heading="// item lvl 2"/duplicates 
+  if bom_level_2:item contains "\" then replace(bom_level_2:item,"\","/") else bom_level_2:item/heading="|item lvl 2 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_2:search_key_i/heading="description lvl 2"/duplicates 
+  items_lvl_2:description/heading="|| description lvl 2 ||"/duplicates 
   "|"/duplicates  
-  items_lvl_2:item_type_text/heading="Item type lvl 2"/duplicates 
+  items_lvl_2:item_type_text/heading="|| Item type lvl 2 ||"/duplicates 
   "|"/duplicates 
-  bom_level_2:wareh/heading="//WHS lvl 2"/duplicates 
+  bom_level_2:wareh/heading="|| WHS lvl 2 ||"/duplicates 
   "|"/duplicates 
-  bom_level_2:expiry_date_dz/heading="//exdate lvl 2"/duplicates 
+  bom_level_2:expiry_date_dz/heading="|| exdate lvl 2 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_2:supply_time/heading="//pur LT lvl 2"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_2:buy_from_business_partner/heading="//supplier lvl 2"/duplicates
+  pur_data_lvl_2:supply_time/heading="|| pur LT lvl 2 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_2:buyer/heading="//nakupci lvl 2"/duplicates  
+  pur_data_lvl_2:purchase_price/heading="|| pur price lvl 2 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_2:purchase_currency/heading="|| pur currency lvl 2 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_2:safety_stock/heading="//safety stock lvl 2"/duplicates 
+  pur_data_lvl_2:purchase_price_unit/heading="|| pur price units lvl 2 ||"/duplicates
   "|"/duplicates 
-  routing_LT_lvl_2:ltoperation/heading="//routing LT lvl 2"/duplicates 
+  pur_data_lvl_2:buy_from_business_partner/heading="|| supplier lvl 2 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_2:name/heading="|| supplier name lvl_2"/duplicates
+  "|"/duplicates
+  pur_data_lvl_2:buyer/heading="|| nakupci lvl 2 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_2:order_system_text/heading="|| order system lvl 2 ||"/duplicates
+  "|"/duplicates    
+  Safety_stock_lvl_2:safety_stock/heading="|| safety stock lvl 2 ||"/duplicates 
+  "|"/duplicates
+  sales_data_lvl_2:sales_price_group/heading="|| sales group LN lvl 2 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_2:cdf_sales_leadtime/heading="|| sales LT LN lvl 2 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_2:sales_price_unit/heading="|| sales price units LN lvl 2 ||"/duplicates
   "|"/duplicates 
-  standard_routing_kod_lvl_2:ltoperation/heading="//STD routing LT lvl 2"/duplicates 
+  routing_LT_lvl_2:ltoperation/heading="|| routing LT lvl 2 ||"/duplicates 
   "|"/duplicates 
-  bom_level_2:phantom_text/heading="// PHANTOM? lvl 2"/duplicates 
+  standard_routing_kod_lvl_2:ltoperation/heading="STD || routing LT lvl 2 ||"/duplicates 
+  "|"/duplicates 
+  bom_level_2:phantom_text/heading="|| PHANTOM? lvl 2 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_2:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 2 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_2:estimated_material_cost_1/heading="|| material cost [EUR] lvl 2 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_2:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 2 ||"/duplicates
+  "|"/duplicates
+  bom_level_2:net_quantity/heading="|| BOM qty lvl 2 ||"/duplicates
+
   
   --LVL 3:
   "|"/duplicates 
-  if bom_level_3:item contains "\" then replace(bom_level_3:item,"\","/") else bom_level_3:item/heading="// item lvl 3"/duplicates 
+  if bom_level_3:item contains "\" then replace(bom_level_3:item,"\","/") else bom_level_3:item/heading="|item lvl 3 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_3:search_key_i/heading="description lvl 3"/duplicates 
+  items_lvl_3:description/heading="|| description lvl 3 ||"/duplicates 
   "|"/duplicates  
-  items_lvl_3:item_type_text/heading="Item type lvl 3"/duplicates 
+  items_lvl_3:item_type_text/heading="|| Item type lvl 3 ||"/duplicates 
   "|"/duplicates 
-  bom_level_3:wareh/heading="//WHS lvl 3"/duplicates 
+  bom_level_3:wareh/heading="|| WHS lvl 3 ||"/duplicates 
   "|"/duplicates 
-  bom_level_3:expiry_date_dz/heading="//exdate lvl 3"/duplicates 
+  bom_level_3:expiry_date_dz/heading="|| exdate lvl 3 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_3:supply_time/heading="//pur LT lvl 3"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_3:buy_from_business_partner/heading="//supplier lvl 3"/duplicates
+  pur_data_lvl_3:supply_time/heading="|| pur LT lvl 3 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_3:buyer/heading="//nakupci lvl 3"/duplicates  
+  pur_data_lvl_3:purchase_price/heading="|| pur price lvl 3 || "/duplicates
+  "|"/duplicates
+  pur_data_lvl_3:purchase_currency/heading="|| pur currency lvl 3 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_3:safety_stock/heading="//safety stock lvl 3"/duplicates 
+  pur_data_lvl_3:purchase_price_unit/heading="|| pur price units lvl 3 ||"/duplicates
   "|"/duplicates 
-  routing_LT_lvl_3:ltoperation/heading="//routing LT lvl 3"/duplicates 
+  pur_data_lvl_3:buy_from_business_partner/heading="|| supplier lvl 3 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_3:name/heading="|| supplier name lvl_3"/duplicates
+  "|"/duplicates
+  pur_data_lvl_3:buyer/heading="|| nakupci lvl 3 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_3:order_system_text/heading="|| order system lvl 3 ||"/duplicates
+  "|"/duplicates     
+  Safety_stock_lvl_3:safety_stock/heading="|| safety stock lvl 3 ||"/duplicates 
+  "|"/duplicates
+  sales_data_lvl_3:sales_price_group/heading="|| sales group LN lvl 3 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_3:cdf_sales_leadtime/heading="|| sales LT LN lvl 3 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_3:sales_price_unit/heading="|| sales price units LN lvl 3 ||"/duplicates
   "|"/duplicates 
-  standard_routing_kod_lvl_3:ltoperation/heading="//STD routing LT lvl 3"/duplicates 
+  routing_LT_lvl_3:ltoperation/heading="|| routing LT lvl 3 ||"/duplicates 
   "|"/duplicates 
-  bom_level_3:phantom_text/heading="// PHANTOM? lvl 3"/duplicates 
-  
+  standard_routing_kod_lvl_3:ltoperation/heading="STD || routing LT lvl 3 ||"/duplicates 
+  "|"/duplicates 
+  bom_level_3:phantom_text/heading="|| PHANTOM? lvl 3 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_3:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 3 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_3:estimated_material_cost_1/heading="|| material cost [EUR] lvl 3 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_3:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 3 ||"/duplicates 
+  "|"/duplicates
+  bom_level_3:net_quantity/heading="|| BOM qty lvl 3 ||"/duplicates
   
   --LVL 4:
   "|"/duplicates 
-  if bom_level_4:item contains "\" then replace(bom_level_4:item,"\","/") else bom_level_4:item/heading="// item lvl 4"/duplicates 
+  if bom_level_4:item contains "\" then replace(bom_level_4:item,"\","/") else bom_level_4:item/heading="|item lvl 4 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_4:search_key_i/heading="description lvl 4"/duplicates 
+  items_lvl_4:description/heading="|| description lvl 4 ||"/duplicates 
   "|"/duplicates  
-  items_lvl_4:item_type_text/heading="Item type lvl 4"/duplicates 
+  items_lvl_4:item_type_text/heading="|| Item type lvl 4 ||"/duplicates 
   "|"/duplicates 
-  bom_level_4:wareh/heading="//WHS lvl 4"/duplicates 
+  bom_level_4:wareh/heading="|| WHS lvl 4 ||"/duplicates 
   "|"/duplicates 
-  bom_level_4:expiry_date_dz/heading="//exdate lvl 4"/duplicates 
+  bom_level_4:expiry_date_dz/heading="|| exdate lvl 4 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_4:supply_time/heading="//pur LT lvl 4"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_4:buy_from_business_partner/heading="//supplier lvl 4"/duplicates
+  pur_data_lvl_4:supply_time/heading="|| pur LT lvl 4 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_4:buyer/heading="//nakupci lvl 4"/duplicates  
+  pur_data_lvl_4:purchase_price/heading="|| pur price lvl 4 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_4:purchase_currency/heading="|| pur currency lvl 4 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_4:safety_stock/heading="//safety stock lvl 4"/duplicates 
+  pur_data_lvl_4:purchase_price_unit/heading="|| pur price units lvl 4 ||"/duplicates
   "|"/duplicates 
-  routing_LT_lvl_4:ltoperation/heading="//routing LT lvl 4"/duplicates 
+  pur_data_lvl_4:buy_from_business_partner/heading="|| supplier lvl 4 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_4:name/heading="|| supplier name lvl_4"/duplicates
+  "|"/duplicates
+  pur_data_lvl_4:buyer/heading="|| nakupci lvl 4 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_4:order_system_text/heading="|| order system lvl 4 ||"/duplicates
+  "|"/duplicates    
+  Safety_stock_lvl_4:safety_stock/heading="|| safety stock lvl 4 ||"/duplicates 
+  "|"/duplicates
+  sales_data_lvl_4:sales_price_group/heading="|| sales group LN lvl 4 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_4:cdf_sales_leadtime/heading="|| sales LT LN lvl 4 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_4:sales_price_unit/heading="|| sales price units LN lvl 4 ||"/duplicates 
   "|"/duplicates 
-  standard_routing_kod_lvl_4:ltoperation/heading="//STD routing LT lvl 4"/duplicates 
+  routing_LT_lvl_4:ltoperation/heading="|| routing LT lvl 4 ||"/duplicates 
   "|"/duplicates 
-  bom_level_4:phantom_text/heading="// PHANTOM? lvl 4"/duplicates 
-  
-  
+  standard_routing_kod_lvl_4:ltoperation/heading="STD || routing LT lvl 4 ||"/duplicates 
+  "|"/duplicates 
+  bom_level_4:phantom_text/heading="|| PHANTOM? lvl 4 ||"/duplicates 
+  "|"/duplicates
+  costing_data_lvl_4:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 4 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_4:estimated_material_cost_1/heading="|| material cost [EUR] lvl 4 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_4:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 4 ||"/duplicates 
+  "|"/duplicates
+  bom_level_4:net_quantity/heading="|| BOM qty lvl 4 ||"/duplicates
+
   --LVL 5:
   "|"/duplicates 
-  if bom_level_5:item contains "\" then replace(bom_level_5:item,"\","/") else bom_level_5:item/heading="// item lvl 5"/duplicates 
+  if bom_level_5:item contains "\" then replace(bom_level_5:item,"\","/") else bom_level_5:item/heading="|item lvl 5 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_5:search_key_i/heading="description lvl 5"/duplicates 
+  items_lvl_5:description/heading="|| description lvl 5 ||"/duplicates 
   "|"/duplicates 
-  items_lvl_5:item_type_text/heading="Item type lvl 5"/duplicates 
+  items_lvl_5:item_type_text/heading="|| Item type lvl 5 ||"/duplicates 
   "|"/duplicates 
-  bom_level_5:wareh/heading="//WHS lvl 5"/duplicates 
+  bom_level_5:wareh/heading="|| WHS lvl 5 ||"/duplicates 
   "|"/duplicates 
-  bom_level_5:expiry_date_dz/heading="//exdate lvl 5"/duplicates 
+  bom_level_5:expiry_date_dz/heading="|| exdate lvl 5 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_5:supply_time/heading="//pur LT lvl 5"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_5:buy_from_business_partner/heading="//supplier lvl 5"/duplicates
+  pur_data_lvl_5:supply_time/heading="|| pur LT lvl 5 ||"/duplicates
   "|"/duplicates
-  pur_data_lvl_5:buyer/heading="//nakupci lvl 5"/duplicates  
+  pur_data_lvl_5:purchase_price/heading="|| pur price lvl 5 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_5:purchase_currency/heading="|| pur currency lvl 5 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_5:safety_stock/heading="//safety stock lvl 5"/duplicates 
+  pur_data_lvl_5:purchase_price_unit/heading="|| pur price units lvl 5 ||"/duplicates 
+  "|"/duplicates
+  pur_data_lvl_5:buy_from_business_partner/heading="|| supplier lvl 5 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_5:name/heading="|| supplier name lvl 5 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_5:buyer/heading="|| nakupci lvl 5 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_5:order_system_text/heading="|| order system lvl 5 ||"/duplicates
+  "|"/duplicates     
+  Safety_stock_lvl_5:safety_stock/heading="|| safety stock lvl 5 ||"/duplicates 
+  "|"/duplicates
+  sales_data_lvl_5:sales_price_group/heading="|| sales group LN lvl 5 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_5:cdf_sales_leadtime/heading="|| sales LT LN lvl 5 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_5:sales_price_unit/heading="|| sales price units LN lvl 5 ||"/duplicates
   "|"/duplicates 
-  routing_LT_lvl_5:ltoperation/heading="//routing LT lvl 5"/duplicates 
+  routing_LT_lvl_5:ltoperation/heading="|| routing LT lvl 5 ||"/duplicates 
   "|"/duplicates 
-  standard_routing_kod_lvl_5:ltoperation/heading="//STD routing LT lvl 5"/duplicates 
+  standard_routing_kod_lvl_5:ltoperation/heading="STD || routing LT lvl 5 ||"/duplicates 
   "|"/duplicates 
-  bom_level_5:phantom_text/heading="// PHANTOM? lvl 5"/duplicates 
-  
+  bom_level_5:phantom_text/heading="|| PHANTOM? lvl 5 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_5:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 5 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_5:estimated_material_cost_1/heading="|| material cost [EUR] lvl 5 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_5:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 5 ||"/duplicates 
+  "|"/duplicates
+  bom_level_5:net_quantity/heading="|| BOM qty lvl 5 ||"/duplicates
   
   --LVL 6:
   "|"/duplicates 
-  if bom_level_6:item contains "\" then replace(bom_level_6:item,"\","/") else bom_level_6:item/heading="// item lvl 6"/duplicates 
+  if bom_level_6:item contains "\" then replace(bom_level_6:item,"\","/") else bom_level_6:item/heading="|item lvl 6 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_6:search_key_i/heading="description lvl 6"/duplicates 
+  items_lvl_6:description/heading="|| description lvl 6 ||"/duplicates 
   "|"/duplicates  
-  items_lvl_6:item_type_text/heading="Item type lvl 6"/duplicates 
+  items_lvl_6:item_type_text/heading="|| Item type lvl 6 ||"/duplicates 
   "|"/duplicates 
-  bom_level_6:wareh/heading="//WHS lvl 6"/duplicates 
+  bom_level_6:wareh/heading="|| WHS lvl 6 ||"/duplicates 
   "|"/duplicates 
-  bom_level_6:expiry_date_dz/heading="//exdate lvl 6"/duplicates 
+  bom_level_6:expiry_date_dz/heading="|| exdate lvl 6 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_6:supply_time/heading="//pur LT lvl 6"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_6:buy_from_business_partner/heading="//supplier lvl 6"/duplicates
+  pur_data_lvl_6:supply_time/heading="|| pur LT lvl 6 ||"/duplicates
   "|"/duplicates
-  pur_data_lvl_6:buyer/heading="//nakupci lvl 6"/duplicates  
+  pur_data_lvl_6:purchase_price/heading="|| pur price lvl 6 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_6:purchase_currency/heading="|| pur currency lvl 6 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_6:safety_stock/heading="//safety stock lvl 6"/duplicates 
+  pur_data_lvl_6:purchase_price_unit/heading="|| pur price units lvl 6 ||"/duplicates  
   "|"/duplicates 
-  routing_LT_lvl_6:ltoperation/heading="//routing LT lvl 6"/duplicates 
+  pur_data_lvl_6:buy_from_business_partner/heading="|| supplier lvl 6 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_6:name/heading="|| supplier name lvl_6"/duplicates
+  "|"/duplicates
+  pur_data_lvl_6:buyer/heading="|| nakupci lvl 6 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_6:order_system_text/heading="|| order system lvl 6 ||"/duplicates
+  "|"/duplicates     
+  Safety_stock_lvl_6:safety_stock/heading="|| safety stock lvl 6 ||"/duplicates 
+  "|"/duplicates
+  sales_data_lvl_6:sales_price_group/heading="|| sales group LN lvl 6 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_6:cdf_sales_leadtime/heading="|| sales LT LN lvl 6 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_6:sales_price_unit/heading="|| sales price units LN lvl 6 ||"/duplicates
   "|"/duplicates 
-  standard_routing_kod_lvl_6:ltoperation/heading="//STD routing LT lvl 6"/duplicates 
+  routing_LT_lvl_6:ltoperation/heading="|| routing LT lvl 6 ||"/duplicates 
   "|"/duplicates 
-  bom_level_6:phantom_text/heading="// PHANTOM? lvl 6"/duplicates 
-  
+  standard_routing_kod_lvl_6:ltoperation/heading="STD || routing LT lvl 6 ||"/duplicates 
+  "|"/duplicates 
+  bom_level_6:phantom_text/heading="|| PHANTOM? lvl 6 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_6:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 6 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_6:estimated_material_cost_1/heading="|| material cost [EUR] lvl 6 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_6:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 6 ||"/duplicates
+  "|"/duplicates
+  bom_level_6:net_quantity/heading="|| BOM qty lvl 6 ||"/duplicates
   
   --LVL 7:
   "|"/duplicates 
-  if bom_level_7:item contains "\" then replace(bom_level_7:item,"\","/") else bom_level_7:item/heading="// item lvl 7"/duplicates  
+  if bom_level_7:item contains "\" then replace(bom_level_7:item,"\","/") else bom_level_7:item/heading="|item lvl 7 ||"/duplicates  
   "|"/duplicates
-  pur_data_lvl_7:search_key_i/heading="description lvl 7"/duplicates 
+  items_lvl_7:description/heading="|| description lvl 7 ||"/duplicates 
   "|"/duplicates  
-  items_lvl_7:item_type_text/heading="Item type lvl 7"/duplicates 
+  items_lvl_7:item_type_text/heading="|| Item type lvl 7 ||"/duplicates 
   "|"/duplicates 
-  bom_level_7:wareh/heading="//WHS lvl 7"/duplicates 
+  bom_level_7:wareh/heading="|| WHS lvl 7 ||"/duplicates 
   "|"/duplicates 
-  bom_level_7:expiry_date_dz/heading="//exdate lvl 7"/duplicates 
+  bom_level_7:expiry_date_dz/heading="|| exdate lvl 7 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_7:supply_time/heading="//pur LT lvl 7"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_7:buy_from_business_partner/heading="//supplier lvl 7"/duplicates
+  pur_data_lvl_7:supply_time/heading="|| pur LT lvl 7 ||"/duplicates
   "|"/duplicates
-  pur_data_lvl_7:buyer/heading="//nakupci lvl 7"/duplicates  
+  pur_data_lvl_7:purchase_price/heading="|| pur price lvl 7 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_7:purchase_currency/heading="|| pur currency lvl 7 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_7:safety_stock/heading="//safety stock lvl 7"/duplicates 
+  pur_data_lvl_7:purchase_price_unit/heading="|| pur price units lvl 7 ||"/duplicates  
   "|"/duplicates 
-  routing_LT_lvl_7:ltoperation/heading="//routing LT lvl 7"/duplicates 
+  pur_data_lvl_7:buy_from_business_partner/heading="|| supplier lvl 7 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_7:name/heading="|| supplier name lvl_7"/duplicates
+  "|"/duplicates
+  pur_data_lvl_7:buyer/heading="|| nakupci lvl 7 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_7:order_system_text/heading="|| order system lvl 7 ||"/duplicates
+  "|"/duplicates     
+  Safety_stock_lvl_7:safety_stock/heading="|| safety stock lvl 7 ||"/duplicates 
+  "|"/duplicates
+  sales_data_lvl_7:sales_price_group/heading="|| sales group LN lvl 7||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_7:cdf_sales_leadtime/heading="|| sales LT LN lvl 7 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_7:sales_price_unit/heading="|| sales price units LN lvl 7 ||"/duplicates
   "|"/duplicates 
-  standard_routing_kod_lvl_7:ltoperation/heading="//STD routing LT lvl 7"/duplicates 
+  routing_LT_lvl_7:ltoperation/heading="|| routing LT lvl 7 ||"/duplicates 
   "|"/duplicates 
-  bom_level_7:phantom_text/heading="// PHANTOM? lvl 7"/duplicates 
-  
+  standard_routing_kod_lvl_7:ltoperation/heading="STD || routing LT lvl 7 ||"/duplicates 
+  "|"/duplicates 
+  bom_level_7:phantom_text/heading="|| PHANTOM? lvl 7 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_7:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 7 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_7:estimated_material_cost_1/heading="|| material cost [EUR] lvl 7 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_7:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 7 ||"/duplicates 
+  "|"/duplicates
+  bom_level_7:net_quantity/heading="|| BOM qty lvl 7 ||"/duplicates
   
   --LVL 8:
   "|"/duplicates 
-  if bom_level_8:item contains "\" then replace(bom_level_8:item,"\","/") else bom_level_8:item/heading="// item lvl 8"/duplicates 
+  if bom_level_8:item contains "\" then replace(bom_level_8:item,"\","/") else bom_level_8:item/heading="|item lvl 8 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_8:search_key_i/heading="description lvl 8"/duplicates 
+  items_lvl_8:description/heading="|| description lvl 8 ||"/duplicates 
   "|"/duplicates  
-  items_lvl_8:item_type_text/heading="Item type lvl 8"/duplicates 
+  items_lvl_8:item_type_text/heading="|| Item type lvl 8 ||"/duplicates 
   "|"/duplicates 
-  bom_level_8:wareh/heading="//WHS lvl 8"/duplicates 
+  bom_level_8:wareh/heading="|| WHS lvl 8 ||"/duplicates 
   "|"/duplicates 
-  bom_level_8:expiry_date_dz/heading="//exdate lvl 8"/duplicates 
+  bom_level_8:expiry_date_dz/heading="|| exdate lvl 8 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_8:supply_time/heading="//pur LT lvl 8"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_8:buy_from_business_partner/heading="//supplier lvl 8"/duplicates
+  pur_data_lvl_8:supply_time/heading="|| pur LT lvl 8 ||"/duplicates
   "|"/duplicates
-  pur_data_lvl_8:buyer/heading="//nakupci lvl 8"/duplicates  
+  pur_data_lvl_8:purchase_price/heading="|| pur price lvl 8 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_8:purchase_currency/heading="|| pur currency lvl 8 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_8:safety_stock/heading="//safety stock lvl 8"/duplicates 
+  pur_data_lvl_8:purchase_price_unit/heading="|| pur price units lvl 8 ||"/duplicates  
   "|"/duplicates 
-  routing_LT_lvl_8:ltoperation/heading="//routing LT lvl 8"/duplicates 
+  pur_data_lvl_8:buy_from_business_partner/heading="|| supplier lvl 8 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_8:name/heading="|| supplier name lvl_8"/duplicates
+  "|"/duplicates
+  pur_data_lvl_8:buyer/heading="|| nakupci lvl 8 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_8:order_system_text/heading="|| order system lvl 8 ||"/duplicates
+  "|"/duplicates   
+  Safety_stock_lvl_8:safety_stock/heading="|| safety stock lvl 8 ||"/duplicates 
   "|"/duplicates 
-  standard_routing_kod_lvl_8:ltoperation/heading="//STD routing LT lvl 8"/duplicates 
+  sales_data_lvl_8:sales_price_group/heading="|| sales group LN lvl 8 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_8:cdf_sales_leadtime/heading="|| sales LT LN lvl 8 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_8:sales_price_unit/heading="|| sales price units LN lvl 8 ||"/duplicates
+  "|"/duplicates  
+  routing_LT_lvl_8:ltoperation/heading="|| routing LT lvl 8 ||"/duplicates 
   "|"/duplicates 
-  bom_level_8:phantom_text/heading="// PHANTOM? lvl 8"/duplicates 
-  
+  standard_routing_kod_lvl_8:ltoperation/heading="STD || routing LT lvl 8 ||"/duplicates 
+  "|"/duplicates 
+  bom_level_8:phantom_text/heading="|| PHANTOM? lvl 8 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_8:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 8 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_8:estimated_material_cost_1/heading="|| material cost [EUR] lvl 8 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_8:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 8 ||"/duplicates 
+  "|"/duplicates
+  bom_level_8:net_quantity/heading="|| BOM qty lvl 8 ||"/duplicates
   
   --LVL 9:
   "|"/duplicates 
-  if bom_level_9:item contains "\" then replace(bom_level_9:item,"\","/") else bom_level_9:item/heading="// item lvl 9"/duplicates 
+  if bom_level_9:item contains "\" then replace(bom_level_9:item,"\","/") else bom_level_9:item/heading="|item lvl 9 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_9:search_key_i/heading="description lvl 9"/duplicates 
+  items_lvl_9:description/heading="|| description lvl 9 ||"/duplicates 
   "|"/duplicates  
-  items_lvl_9:item_type_text/heading="Item type lvl 9"/duplicates 
+  items_lvl_9:item_type_text/heading="|| Item type lvl 9 ||"/duplicates 
   "|"/duplicates 
-  bom_level_9:wareh/heading="//WHS lvl 9"/duplicates 
+  bom_level_9:wareh/heading="|| WHS lvl 9 ||"/duplicates 
   "|"/duplicates 
-  bom_level_9:expiry_date_dz/heading="//exdate lvl 9"/duplicates 
+  bom_level_9:expiry_date_dz/heading="|| exdate lvl 9 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_9:supply_time/heading="//pur LT lvl 9"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_9:buy_from_business_partner/heading="//supplier lvl 9"/duplicates
+  pur_data_lvl_9:supply_time/heading="|| pur LT lvl 9 ||"/duplicates
   "|"/duplicates
-  pur_data_lvl_9:buyer/heading="//nakupci lvl 9"/duplicates  
+  pur_data_lvl_9:purchase_price/heading="|| pur price lvl 9 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_9:purchase_currency/heading="|| pur currency lvl 9 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_9:safety_stock/heading="//safety stock lvl 9"/duplicates 
+  pur_data_lvl_9:purchase_price_unit/heading="|| pur price units lvl 9 ||"/duplicates  
   "|"/duplicates 
-  routing_LT_lvl_9:ltoperation/heading="//routing LT lvl 9"/duplicates 
+  pur_data_lvl_9:buy_from_business_partner/heading="|| supplier lvl 9 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_9:name/heading="|| supplier name lvl_9"/duplicates
+  "|"/duplicates
+  pur_data_lvl_9:buyer/heading="|| nakupci lvl 9 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_9:order_system_text/heading="|| order system lvl 9 ||"/duplicates
+  "|"/duplicates    
+  Safety_stock_lvl_9:safety_stock/heading="|| safety stock lvl 9 ||"/duplicates 
   "|"/duplicates 
-  standard_routing_kod_lvl_9:ltoperation/heading="//STD routing LT lvl 9"/duplicates 
+  sales_data_lvl_9:sales_price_group/heading="|| sales group LN lvl 9 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_9:cdf_sales_leadtime/heading="|| sales LT LN lvl 9 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_9:sales_price_unit/heading="|| sales price units LN lvl 9 ||"/duplicates
   "|"/duplicates 
-  bom_level_9:phantom_text/heading="// PHANTOM? lvl 9"/duplicates 
-  
+  routing_LT_lvl_9:ltoperation/heading="|| routing LT lvl 9 ||"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_9:ltoperation/heading="STD || routing LT lvl 9 ||"/duplicates 
+  "|"/duplicates 
+  bom_level_9:phantom_text/heading="|| PHANTOM? lvl 9 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_9:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 9 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_9:estimated_material_cost_1/heading="|| material cost [EUR] lvl 9 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_9:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 9 ||"/duplicates 
+  "|"/duplicates
+  bom_level_9:net_quantity/heading="|| BOM qty lvl 9 ||"/duplicates
   
   --LVL 10:
   "|"/duplicates 
-  if bom_level_10:item contains "\" then replace(bom_level_10:item,"\","/") else bom_level_10:item/heading="// item lvl 10"/duplicates 
+  if bom_level_10:item contains "\" then replace(bom_level_10:item,"\","/") else bom_level_10:item/heading="|item lvl 10 ||"/duplicates 
   "|"/duplicates
-  pur_data_lvl_10:search_key_i/heading="description lvl 10"/duplicates 
+  items_lvl_10:description/heading="|| description lvl 10 ||"/duplicates 
   "|"/duplicates  
-  items_lvl_10:item_type_text/heading="Item type lvl 10"/duplicates 
+  items_lvl_10:item_type_text/heading="|| Item type lvl 10 ||"/duplicates 
   "|"/duplicates 
-  bom_level_10:wareh/heading="//WHS lvl 10"/duplicates 
+  bom_level_10:wareh/heading="|| WHS lvl 10 ||"/duplicates 
   "|"/duplicates 
-  bom_level_10:expiry_date_dz/heading="//exdate lvl 10"/duplicates 
+  bom_level_10:expiry_date_dz/heading="|| exdate lvl 10 ||"/duplicates 
   "|"/duplicates 
-  pur_data_lvl_10:supply_time/heading="//pur LT lvl 10"/duplicates 
-  "|"/duplicates 
-  pur_data_lvl_10:buy_from_business_partner/heading="//supplier lvl 10"/duplicates
+  pur_data_lvl_10:supply_time/heading="|| pur LT lvl 10 ||"/duplicates
   "|"/duplicates
-  pur_data_lvl_10:buyer/heading="//nakupci lvl 10"/duplicates  
+  pur_data_lvl_10:purchase_price/heading="|| pur price lvl 10 ||"/duplicates
+  "|"/duplicates
+  pur_data_lvl_10:purchase_currency/heading="|| pur currency lvl 10 ||"/duplicates
   "|"/duplicates 
-  Safety_stock_lvl_10:safety_stock/heading="//safety stock lvl 10"/duplicates 
+  pur_data_lvl_10:purchase_price_unit/heading="|| pur price units lvl 10 ||"/duplicates  
   "|"/duplicates 
-  routing_LT_lvl_10:ltoperation/heading="//routing LT lvl 10"/duplicates 
+  pur_data_lvl_10:buy_from_business_partner/heading="|| supplier lvl 10 ||"/duplicates
+  "|"/duplicates
+  partners_name_lvl_10:name/heading="|| supplier name lvl_10"/duplicates
+  "|"/duplicates
+  pur_data_lvl_10:buyer/heading="|| nakupci lvl 10 ||"/duplicates  
+  "|"/duplicates
+  Safety_stock_lvl_10:order_system_text/heading="|| order system lvl 10 ||"/duplicates
+  "|"/duplicates  
+  Safety_stock_lvl_10:safety_stock/heading="|| safety stock lvl 10 ||"/duplicates 
   "|"/duplicates 
-  standard_routing_kod_lvl_10:ltoperation/heading="//STD routing LT lvl 10"/duplicates 
+  sales_data_lvl_10:sales_price_group/heading="|| sales group LN lvl 10 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_10:cdf_sales_leadtime/heading="|| sales LT LN lvl 10 ||"/duplicates
+  "|"/duplicates
+  sales_data_lvl_10:sales_price_unit/heading="|| sales price units LN lvl 10 ||"/duplicates  
   "|"/duplicates 
-  bom_level_10:phantom_text/heading="// PHANTOM? lvl 10"/duplicates
+  routing_LT_lvl_10:ltoperation/heading="|| routing LT lvl 10 ||"/duplicates 
+  "|"/duplicates 
+  standard_routing_kod_lvl_10:ltoperation/heading="STD || routing LT lvl 10 ||"/duplicates 
+  "|"/duplicates 
+  bom_level_10:phantom_text/heading="|| PHANTOM? lvl 10 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_10:estimated_standard_cost_1/heading="|| standard est cost [EUR] lvl 10 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_10:estimated_material_cost_1/heading="|| material cost [EUR] lvl 10 ||"/duplicates
+  "|"/duplicates
+  costing_data_lvl_10:estimated_operational_cost_1/heading="|| Operation cost [EUR] lvl 10 ||"/duplicates
+  "|"/duplicates
+  bom_level_10:net_quantity/heading="|| BOM qty lvl 10 ||"/duplicates
 
 sorted by
   bill_of_material:manufactured_item
