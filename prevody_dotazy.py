@@ -62,10 +62,10 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
                     print('POZOR - ERROR v +/- balance na u itemu {vrchol} na lince {linka}.')            
                 
                 if order_type.upper() == "STOCK" and len(order_plan_skladu.get(vrchol)) == 1:
-                    line.append(f'{dnesni_datum().strftime("%d/%m/%Y")}, PA: {vrchol_available_qty_sklad}')
+                    line.append(f'{dnesni_datum().strftime("%d/%m/%Y").replace("/",".")}, PA Qty: {vrchol_available_qty_sklad}')
                     break
                 elif vrchol_available_qty_sklad >= 0 and datum > pdd:
-                    line.append(f'{datum}, PA: {vrchol_available_qty_sklad}')
+                    line.append(f'{datum.strftime("%d/%m/%Y").replace("/",".")}, PA Qty: {vrchol_available_qty_sklad}')
                     break
             else:
                 line.append(f'Neexistuje')              
@@ -110,7 +110,7 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
             continue
         ### 1B) Pokud je planned available mensi 0 → Proveri se, zda je mozno sem prevest z druheho skladu opravene o mnozstvi, ktere jsem uz prevedl.
         sum_planned_available_odkud_prevadim = float(line[zahlavi_vystupu.index("Planned available Qty on PZN100 at PDD")]) - uz_simulovano_qty_vrcholu
-        print(f'PA na 100 na PDD: {sum_planned_available_odkud_prevadim}')
+        # print(f'PA na 100 na PDD: {sum_planned_available_odkud_prevadim}')
         ### 2. Podivej se, jestli je alespon tolik, kolik bych potreboval prevest k dispozici na sklade, odkud prevadim v PDD.
         if sum_planned_available_kam_prevadim + sum_planned_available_odkud_prevadim < 0: ### 2a] Pokud neni, nelze prevadet. → preskocit na dalsi linku.
             #print(f'Nelze prevest, na druhem skladu neni dostatecne mnozstvi.\n')
@@ -206,7 +206,7 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
                         if not uz_simulovano_prevod.get(vrchol).get(pdd_linky):
                             # print(f'V datum {pdd_linky} se jeste neprevadel. Pridavam {abs(sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane)} Qty do uz simulovanych prevodu s datumem {pdd_linky}.')
                             uz_simulovano_prevod[vrchol][pdd_linky] = abs(sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane)
-                            print(uz_simulovano_prevod)
+                            # print(uz_simulovano_prevod)
                         ### uz se nejake mnozstvi v tento den prevadelo.  
                         else:
                             # print(f'V datum {pdd_linky} se uz neco prevadelo. Scitam {abs(sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane)} Qty do uz s timto datumem {pdd_linky}.')
