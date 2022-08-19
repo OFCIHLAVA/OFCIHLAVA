@@ -1,1 +1,151 @@
+viewpoint all_tables;
+
+define
+  date order_date_SO_line = if project_details:start_date_dz > 1.1.1970 then project_details:start_date_dz else sales_order_lines:order_date_dz;
+  
+  
+  
+  
+  
+  --date completion_date = if weekday(sales_order_lines:planned_delivery_date_dz) = 2 then sales_order_lines:planned_delivery_date_dz - 3 else sales_order_lines:planned_delivery_date_dz - 1;
+  
+  
+  string responsible_planner= "Martin Vorisek";
+  
+ -- string confirm_sales_leadtime = if item_sales_data:cdf_confirm_sales_order_lead_tim = 1 then "YES" else "NO";
+  
+  file busines_partner = access business_partners_tccom100,
+    set business_partners_tccom100:business_partner = sales_order_lines:sold_to_business_partner;
+  
+  file inv_on_hand_so_lines = access item_inventory_by_warehouse,
+    set item_inventory_by_warehouse:warehouse = sales_order_lines:warehouse,
+    item_inventory_by_warehouse:item = sales_order_lines:item;
+  
+  file items_orderung = access employees_general,
+    set employees_general:employee = items_ordering:planner;
+  
+  file project_sales_order = access general_project_data,
+    set general_project_data:project = sales_order_lines:project;
+  
+  file project_planner = access employees_general,
+    set employees_general:employee = project_sales_order:employee;
+  
+  file front_office_empl1 = access employees_general,
+    set employees_general:employee = sales_orders:internal_sales_representative;
+  
+  --#file front_office_empl2 = access employees_general,
+  --#  set employees_general:employee = sales_orders:external_sales_representative;
+  
+  string REPDRP = if sales_orders:reference_a = "DRP" then "DRP" else if sales_orders:reference_a = "REP" then "REP" else ""
+
+  -- shortage calculation
+
+  --number shortage =
+  string addressee = addresses_tccom130:name 
+--if sold_to_business_partner one of "I00001055", "I00001035", "I00000081" and order begins with "PS0E" then "via SCA "+addresses_tccom130:name else addresses_tccom130:name
+where 
+  sales_order_lines:company = 
+    "270" --and project_details:project <>
+  --""    
+  and ( sales_order_lines:order >= 
+    "PS0200000"
+  and sales_order_lines:order <= 
+    "PS0E99999" )
+  and sales_order_lines:order not begins 
+    "PS07"
+  and sales_orders:sales_office = 
+    "PZS002"
+  and sales_order_lines:delivery_date_dldt_dz = 
+    1.jan.1970
+  and sales_order_lines:project not begins 
+    "PMP9"
+  and sales_order_lines:project not begins 
+    "PMP8"
+  and project_details:project_status_text not one of
+    "Finished",
+    "Closed"
+  and sales_order_lines:ordered_qty + sales_order_lines:back_order_quantity > 
+    sales_order_lines:delivered_quantity
+  and sales_order_lines:cancelled = 
+    2
+  and sales_order_lines:item [10,47] <> 
+    "ADVANCE PAYMENTS" 
+  and sales_order_lines:item [10,47] <> 
+    "Cancelation fee Spare Parts"
+  and sales_order_lines:item [10,47] not begins 
+    "CH"
+
+list/duplicates/domain="sales_order_lines"
+  "|"
+  if sales_order_lines:cdf_aog = 1 then "Yes" else ""/heading="***| AOG" 
+  "|"  
+  project_details:project/clip/heading="| Project"  
+  "|"
+  sales_order_lines:item [10,47]/displaywidth=13/heading="| Item"  
+  "|"
+  items:description/displaywidth=29/heading="| Description"  
+  "|"
+  project_details:project_status_text/duplicates/heading="| Project Status"/displaywidth=8 
+  "|"
+  busines_partner:name/clip/heading="| Name"  
+  "|"
+  addressee/heading = "| Addressee"
+  "|"
+  order_date_SO_line/displaywidth=10/heading="| Order Date" 
+  "|"
+  sales_order_lines:delivery_date_ddta_dz/displaywidth=10/heading="| Planned Delivery Date" 
+  "|"
+  sales_order_lines:cdf_customer_requested_date_dz/displaywidth=10/heading="| CUSTOMER REQ DATE" 
+  "|"
+  sales_order_lines:cdf_supplier_promised_date_dz/displaywidth=10/heading="| Supplier Promised Date" 
+  "|"
+  sales_order_lines:ordered_qty/heading="| Ordered Qty" 
+  "|"
+  sales_order_lines:delivered_quantity/heading="| Delivered Quantity" 
+  "|"
+  inv_on_hand_so_lines:inventory_on_hand/heading="| Inventory on hand" 
+--  sales_order_lines:back_order_quantity/heading="Back Order Quantity" 
+  "|"
+  sales_order_lines:order/heading="| Sales Order" 
+  "|"
+  sales_orders:customer_order/heading="| Customer Order" 
+  "|"
+  sales_orders:sales_order_status_text/heading="| Sales Order Status" 
+  "|"
+  sales_order_lines:amount/decimalplaces=0/heading="| Amount"  
+  "|"
+  sales_orders:order_currency/heading="| Currency" 
+  --confirm_sales_leadtime/heading="CONFIRM SALES LEADTIME" 
+  --item_sales_data:cdf_sales_leadtime/heading="Sales Leadtime (from sales data)" 
+  "|"
+  items_orderung:name/heading="| Item Planner" 
+  "|"
+  sales_order_lines:position/heading="| Position"  
+  "|"
+  sales_order_lines:warehouse/heading="| Warehouse"  
+  "|"
+  sales_order_lines:inventory_handling_text/duplicates/heading="| Inventory handling" 
+  "|"
+  project_planner:name/heading="| Project Planner" 
+  "|"
+  front_office_empl1:name/heading="| SO planner" 
+  "|"
+  sales_order_lines:market/heading="| Market code" 
+  "|"
+  REPDRP/heading = "| RefA"
+  "|"
+  responsible_planner/heading="| RESPONSIBLE PLANNER" 
+  "|"
+  str(systemtimestamp)/heading="| System time" 
+  "|"
+  if sales_order_lines:sales_acknowledgement = "" then sales_orders:sales_acknowledgement else sales_order_lines:sales_acknowledgement+" " + sales_orders:sales_acknowledgement/heading="| Sales Acknowledgement" 
+  "|"
+  if sales_order_lines:item [1,9] = "         " then sales_order_lines:item [10,47] else sales_order_lines:item/heading="| KLIC1" 
+  "|"
+  sales_order_lines:order+str( sales_order_lines:position )/heading="| KLIC2"
+
+
+sorted by
+  sales_order_lines:delivery_date_ddta_dz
+  sales_order_lines:ordered_qty
 
