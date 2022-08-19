@@ -1,4 +1,3 @@
-import openpyxl as excel
 import datetime
 
 
@@ -11,7 +10,7 @@ def zahlavi_master_planu(excel_sheet): # Ziskani nazvu sloupcu jako list. Sales 
             zahlavi_master_planu.append(column_name)
     return zahlavi_master_planu
 
-def zahlavi_vystupu(excel_sheet, zahlavi_master_planu): # Pripravi zahlavi sloupcu vystupu programu.
+def zahlavi_vystupu_excel(excel_sheet, zahlavi_master_planu): # Pripravi zahlavi sloupcu vystupu programu.
     zahlavi_vystupu = list()
 
     for nazev in zahlavi_master_planu: # Nalezeni indexu jednotlivych nazvu sloupcu ze zahlavi Master planu.
@@ -67,7 +66,38 @@ def do_datumu_proverit_master_plan(kal_dnu_k_provereni_ode_dneska): # Do jakeho 
     do_datumu_proverit_master_plan = dnesni_datum() + posun_dnu
     return do_datumu_proverit_master_plan
 
-def shortage_linky_master_planu(excel_sheet, zahlavi_master_planu, do_datumu_proverit_master_plan, order_plan_pzn_100, order_plan_pzn_105): # Projde vsechny linky Master planu a vybere na zaklade kriterii shortage linky k provereni. Vysledek vrati jako seznam linek Master planu serazeny podle linky Master planu a itemu.
+def seznam_itemu_pro_order_plany_excel(excel_sheet, zahlavi_master_planu, do_datumu_proverit_master_plan): # Vynda z dat master planu seznam itemu k provereni order planu a odstrani duplicity.
+    
+    seznam_itemu_pro_order_plany = set()
+
+    for nazev in zahlavi_master_planu: # Najit indexy nazvu sloupcu z Master planu.
+        if nazev.upper() == "AVAILABILITY": # Najit sloupec Availability.
+            availability_sloupec_index = zahlavi_master_planu.index(nazev)
+        elif nazev.upper() == "PROJECT": # Najit Project.
+            project_sloupec_index = zahlavi_master_planu.index(nazev)
+        elif nazev.upper() == "ITEM": # Najit sloupec Item.
+            item_sloupec_index = zahlavi_master_planu.index(nazev)        
+        elif nazev.upper() == "PLANNED DELIVERY DATE": # Najit sloupec PDD.
+            pdd_sloupec_index = zahlavi_master_planu.index(nazev)        
+        elif nazev.upper() == "CUSTOMER REQ DATE": # Najit sloupec CRD.
+            crd_sloupec_index = zahlavi_master_planu.index(nazev)        
+        elif nazev.upper() == "SUPPLIER PROMISED DATE": # Najit sloupec SPD.
+            spd_sloupec_index = zahlavi_master_planu.index(nazev)
+
+    datumy_sloupce_indexy = [pdd_sloupec_index, crd_sloupec_index, spd_sloupec_index]
+    
+    # set itemu z linek Master planu k provereni order planu.
+    for row in range(2 ,min(1048576, excel_sheet.max_row+1)): # Sestaveni seznamu.  
+        if excel_sheet.cell(row, availability_sloupec_index+1).value != None and excel_sheet.cell(row, availability_sloupec_index+1).value.upper() == "SHORTAGE": # Overeni ze je linka Shortage.
+            if excel_sheet.cell(row, project_sloupec_index+1).value == "": # Kontrola anonymni polozky.
+                for datum_linky in [excel_sheet.cell(row, c+1).value.date() for c in datumy_sloupce_indexy]: # Kontrola datumu, zda je v rozmezi proverovanych datumu zadaneho uzivatelem. Proveruje PDD, CRD i SPD linky.
+                    if not neplatne_datum_ln(datum_linky) and datum_linky <= do_datumu_proverit_master_plan and datum_linky >= dnesni_datum():
+                        
+                        # Pokud linka splni podminky vyse → item z ni je pridan do setu itemu k provereni.
+                        seznam_itemu_pro_order_plany.add(excel_sheet.cell(row, item_sloupec_index+1).value)
+    return seznam_itemu_pro_order_plany            
+
+def shortage_linky_master_planu_excel(excel_sheet, zahlavi_master_planu, do_datumu_proverit_master_plan, order_plan_pzn_100, order_plan_pzn_105): # Projde vsechny linky Master planu a vybere na zaklade kriterii shortage linky k provereni. Vysledek vrati jako seznam linek Master planu serazeny podle linky Master planu a itemu.
     
     shortage_linky = list()
 
@@ -148,7 +178,6 @@ def doplneni_sum_ordered_qty_do_vystupu(shortage_linky, zahlavi_vystupu): # Pro 
 def doplneni_zahlavi_do_vystupu(shortage_linky, zahlavi_vystupu):
     shortage_linky.insert(0, zahlavi_vystupu)
 
-# Tabulka prevodu
 def doplneni_already_zadano_do_vystupu(excel_sheet, shortage_linky, zahlavi_vystupu, obsolete_days): # Pro kazdou linku vytazenou z Master planu prida na konec linky sumu Qty, o kterou je zazadano v tabulce prevodu ale jeste nebylo zpracovane.
     
     neplatne_pozadavky_po_kolika_dnech = datetime.timedelta(obsolete_days) # Po kolika dnech uz nezpracovane pozadavky v tabulce prevodu povazujeme za naplatne.    
@@ -162,7 +191,7 @@ def doplneni_already_zadano_do_vystupu(excel_sheet, shortage_linky, zahlavi_vyst
     who_processed_col = 11
 
     for line in shortage_linky:
-        vrchol = line[zahlavi_vystupu.index("Item")]
+        vrchol = str(line[zahlavi_vystupu.index("Item")])
         if vrchol == "Item":
             continue
         vrchol_uz_zadano_k_prevodu = 0
@@ -191,7 +220,7 @@ def doplneni_already_zadano_do_vystupu(excel_sheet, shortage_linky, zahlavi_vyst
                     datum_created = cell_date_created.value.date()
 
                 if datum_created > dnesni_datum() - neplatne_pozadavky_po_kolika_dnech:
-                    if str(cell_from_whs.value).upper() == "PZN100" and str(cell_to_whs.value).upper() == "PZN105": # Kontrola, ze linka se tyka prevodu z PZN100 na PZN105.  
-                        if cell_item.value == vrchol:
+                    if (str(cell_from_whs.value).strip()).upper() == "PZN100" and (str(cell_to_whs.value).strip()).upper() == "PZN105": # Kontrola, ze linka se tyka prevodu z PZN100 na PZN105.  
+                        if str(cell_item.value).strip() == vrchol:
                             vrchol_uz_zadano_k_prevodu += int(cell_qty.value)
         line.append(vrchol_uz_zadano_k_prevodu)
