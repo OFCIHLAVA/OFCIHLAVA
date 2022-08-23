@@ -10,18 +10,25 @@ from prevody_data import cq_data, excel_data
 def run_program():
 
     if 1 in stage:    
+        log_window['state'] = 'normal'
+        
         run_btn_text.set("CONTINUE")
         log_window.delete(1.0, END)
         log_text_0 = """1.KROK:\nZadej počet dní k prověření a spusť CQ report "TEST_Sales_order_lines_master_plan.eq" ve složce: "webreports\After Sales\Ondra test".\nVýsledek reportu exportuj/ulož jako "master plan.txt" soubor do složky\nY:\Departments\Sales and Marketing\Aftersales\11_PLANNING\23_Python_utilities\Převody\Master plan txt\n\naž bude připraveno, pokračuj tlačítkem CONTINUE...\n"""
         log_window.insert(1.0, log_text_0)
         stage.pop()
         stage.append(2)
+
+        log_window['state'] = 'disabled'
     elif 2 in stage:       
         
         ##############################
         # Master plan data CQ priprava.
         ##############################
         
+        log_window['state'] = 'normal'
+        items_to_order_plans['state'] = 'normal'
+
         run_btn_text.set("VÝSLEDEK")
         
         kal_dnu_k_provereni_ode_dneska = int(next_cal_days_to_check.get())
@@ -35,7 +42,7 @@ def run_program():
         
         # Nacteni Master planu CQ.
         global master_plan_data        
-        master_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody\\Master plan txt\\master plan.txt")
+        master_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody PZN100 ↔ PZN105\\Master plan txt\\master plan.txt")
         log_text_2 = f'• Master plan data načtena . . .\n' 
         log_window.insert(END, log_text_2)
 
@@ -83,16 +90,22 @@ def run_program():
         stage.pop()
         stage.append(3)
 
+        log_window['state'] = 'disabled'
+        items_to_order_plans['state'] = 'disabled'
+
     elif 3 in stage:
         ##############################
         # Order plany CQ data priprava.
         ##############################
         
+        log_window['state'] = 'normal'
+        output['state'] = 'normal'
+
         # Smazani dat jestli nejaka jasou v outputu.
         output.delete(1.0, END)
         
         global order_plan_data
-        order_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody\\Order plan\\order plan 100+105.txt")
+        order_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody PZN100 ↔ PZN105\\Order plan\\order plan 100+105.txt")
         log_text_10 = f'\n• CQ data načtena . . .\n' 
         log_window.insert(END, log_text_10)               
 
@@ -192,7 +205,6 @@ def run_program():
         log_window.insert(END, log_text_27)        
 
 
-
         # Vytisteni vystupu po jednotlivych linkach.
         for line in shortage_linky_proverit: # kontrolni TISK
             row_to_print = []
@@ -206,7 +218,16 @@ def run_program():
             output.insert(END, o)
             output.insert(END, "\n")
 
-def restart_program():
+        log_window['state'] = 'disabled'
+        output['state'] = 'disabled'            
+
+def restart_program():   
+
+    log_window['state'] = 'normal'
+    items_to_order_plans['state'] = 'normal'
+    output['state'] = 'normal' 
+
+    
     # resetovani stage programu do pocatecniho stavu.
     stage.clear()
     stage.append(1)
@@ -218,6 +239,9 @@ def restart_program():
     items_to_order_plans.delete(1.0, END)
     output.delete(1.0, END)
 
+    log_window['state'] = 'disabled'
+    items_to_order_plans['state'] = 'disabled'
+    output['state'] = 'disabled'       
 
 def copy_items_order_plan():
     obsah = items_to_order_plans.get(1.0, END)
@@ -228,7 +252,6 @@ def copy_vysledek():
     obsah = output.get(1.0, END)
     output.clipboard_clear()
     output.clipboard_append(obsah)
-
 
 root = Tk()
 root.title("NO EXCEL Převody PZN105 <-> PZN100")
@@ -275,18 +298,21 @@ empty1.grid(row=0,column=0,rowspan=1, columnspan=1)
 
 # Seznam polozek k provereni
 items_to_order_plans = Text(root, width=16, height=14, borderwidth = 5, font=('Calibry 11'))
+items_to_order_plans['state'] = 'disabled'
 items_to_order_plans_tooltip = StringVar()
 items_to_order_plans_tooltip.set(f'Seznam itemů zadat\n↓ do CQ order plánů: ↓')
 items_to_order_plans_tooltip_label = Label(root, width=25, padx=0, textvariable=items_to_order_plans_tooltip, justify=LEFT, font=('Calibry 8'))
 
 # Program log.
 log_window = Text(root, width=125, height=8, borderwidth = 5, font=('Calibry 8'))
+log_window['state'] = 'disabled'
 log_window_tooltip = StringVar()
 log_window_tooltip.set(f'↓ Info programu ↓')
 log_window_tooltip_label = Label(root, height=2, textvariable=log_window_tooltip, pady=1, font=('Calibry 8'))
 
 # Output window.
 output = Text(root, width=120, height=22, borderwidth = 5, font=('Calibry 11'))
+output['state'] = 'disabled'
 output_tooltip = StringVar()
 output_tooltip.set(f'↓ Output window ↓')
 output_label = Label(root, textvariable=output_tooltip, width=23, height=2, justify=LEFT, font=('Calibry 8'))

@@ -1,9 +1,9 @@
 ***Funkce:***
 
-- Účelem programu Prevody_aplikace je projít všechny prodejní linky z PZN105 ve stanoveném časovém rozpětí a zkontrolovat, jestli bude v den
+- Účelem programu Prevody_aplikace je projít všechny prodejní linky z PZN105 ve stanoveném rozpětí dnů a zkontrolovat, jestli bude v den
 	prodeje dostatečné množství požadované položky na skladu PZN105.
 - Pokud ano, vráti informaci, že linka je v pořádku. 
-- Pokud ne, prověří pro stejnou položku také sklad PZN100 a pokud je možno převést požadované mmožství z PZN100, vráti informaci o možnosti převodu.
+- Pokud ne, prověří pro stejnou položku také sklad PZN100 a pokud je možno převést požadované mmožství z PZN100, vráti informaci o možnosti převodu (ANO/NE).
 
 ***Logika programu:***
 
