@@ -1,6 +1,6 @@
 from msilib.schema import Font
 from re import S
-from tkinter import Entry, Label, StringVar, Tk, Text, Button, END, font
+from tkinter import *
 import datetime
 from unicodedata import name
 import openpyxl as excel
@@ -13,7 +13,7 @@ def run_program():
     if 1 in stage:    
         run_btn_text.set("CONTINUE")
         log_window.delete(1.0, END)
-        log_text_0 = """1.KROK:\nZadej počet dní k prověření a spusť CQ report "TEST_Sales_order_lines_master_plan.eq" ve složce: "webreports\After Sales\Ondra test". Výsledek reportu exportuj/ulož jako\n"master plan.txt" soubor do složky\nY:\Departments\Sales and Marketing\Aftersales\11_PLANNING\23_Python_utilities\Převody\nMaster plan txt\n\naž bude připraveno, pokračuj tlačítkem CONTINUE...\n"""
+        log_text_0 = """1.KROK:\nZadej počet dní k prověření a spusť CQ report "TEST_Sales_order_lines_master_plan.eq" ve složce: "webreports\After Sales\Ondra test".\nVýsledek reportu exportuj/ulož jako "master plan.txt" soubor do složky\nY:\Departments\Sales and Marketing\Aftersales\11_PLANNING\23_Python_utilities\Převody\Master plan txt\n\naž bude připraveno, pokračuj tlačítkem CONTINUE...\n"""
         log_window.insert(1.0, log_text_0)
         stage.pop()
         stage.append(2)
@@ -22,12 +22,16 @@ def run_program():
         ##############################
         # Master plan data CQ priprava.
         ##############################
+        
+        run_btn_text.set("VÝSLEDEK")
+        
         kal_dnu_k_provereni_ode_dneska = int(next_cal_days_to_check.get())
         
         global proverit_do_datumu                
         proverit_do_datumu = excel_data.do_datumu_proverit_master_plan(kal_dnu_k_provereni_ode_dneska)
         do_datumu.set(proverit_do_datumu.strftime("%d/%m/%Y").replace("/", "."))        
-        log_text_1 = f'\n2.KROK:\n• Budou se prověřovat linky z Master Plánů s datumy od dneška do {proverit_do_datumu.strftime("%d/%m/%Y").replace("/", ".")} . . .\n'
+        log_text_1 = f'2.KROK:\n• Budou se prověřovat linky z Master Plánů s datumy od dneška do {proverit_do_datumu.strftime("%d/%m/%Y").replace("/", ".")} . . .\n'
+        log_window.delete(1.0, END)
         log_window.insert(END, log_text_1)
         
         # Nacteni Master planu CQ.
@@ -84,6 +88,10 @@ def run_program():
         ##############################
         # Order plany CQ data priprava.
         ##############################
+        
+        # Smazani dat jestli nejaka jasou v outputu.
+        output.delete(1.0, END)
+        
         global order_plan_data
         order_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody\\Order plan\\order plan 100+105.txt")
         log_text_10 = f'\n• CQ data načtena . . .\n' 
@@ -189,6 +197,11 @@ def run_program():
         log_text_26 = f'• Záhlaví přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_26)
 
+        log_text_27 = f'\n• HOTOVO . . .\n\nVýsledek je třeba zkopírovat do excelu a rozdělit TEXT CO COLUMNS podle zanku "|".\n'         
+        log_window.insert(END, log_text_27)        
+
+
+
         # Vytisteni vystupu po jednotlivych linkach.
         for line in shortage_linky_proverit: # kontrolni TISK
             row_to_print = []
@@ -201,7 +214,19 @@ def run_program():
             o="|".join(row_to_print)
             output.insert(END, o)
             output.insert(END, "\n")
-       
+
+def restart_program():
+    # resetovani stage programu do pocatecniho stavu.
+    stage.clear()
+    stage.append(1)
+
+    # resetovani popisu start buttonu do pocatecniho stavu.
+    run_btn_text.set("START")
+
+    log_window.delete(1.0, END)
+    items_to_order_plans.delete(1.0, END)
+    output.delete(1.0, END)
+
 def copy_items_order_plan():
     obsah = items_to_order_plans.get(1.0, END)
     items_to_order_plans.clipboard_clear()
@@ -214,109 +239,122 @@ def copy_vysledek():
 
 
 root = Tk()
-root.title("Kontrolovadlo prevodu")
+root.title("Převody PZN105 <-> PZN100")
 root.iconbitmap("graphics\icon.ico")
-root.geometry('1400x620+0+3')
+root.geometry('1200x620+0+3')
 
 ### Postup programem.
 # Krok 1.
 stage = [1]
 
 # Empty space labels. ( Na vyplneni prazdnych mist)
-empty = Label(root)
-empty2 = Label(root, height=10)
-empty3 = Label(root, width=40)
-
+empty1 = Label(root, height=2, width=5, text="", pady=7)
+empty2 = Label(root, height=4, width=5, text="", pady=6)
+empty3 = Label(root, height=1, width=5, text="", pady=8)
+empty4 = Label(root, height=2, width=10, text="", padx=3)
+empty5 = Label(root, height=0, width=10, text="", padx=3)
+empty6 = Label(root, height=0, width=1, text="", padx=0)
 
 # Rovna se bunka.
 equals = StringVar()
 equals.set("=")
-equal = Label(root, textvariable=equals)
+equal = Label(root, textvariable=equals, borderwidth=5)
 
 # Okno zadavani poctu dalsich dnu k proverovani.
 dnu_proverit = StringVar()
 dnu_proverit.set(0)
 
-next_cal_days_to_check = Entry(root, width = 5, textvariable=dnu_proverit, borderwidth = 5, font=('Calibry 11'))
+next_cal_days_to_check = Entry(root, width = 5, textvariable=dnu_proverit, justify=CENTER, relief=SUNKEN, borderwidth = 5, font=('Calibry 11'))
 next_cal_days_to_check_tooltip = StringVar()
 next_cal_days_to_check_tooltip.set(f'Kal. dnů\nprověřit:')
-next_cal_days_to_check_tooltip_label = Label(root, textvariable=next_cal_days_to_check_tooltip, font=('Calibry 8'))
+next_cal_days_to_check_tooltip_label = Label(root, textvariable=next_cal_days_to_check_tooltip, font=('Calibry 8'), justify=LEFT)
 
 # Okno zobrazujici datum, do kdy se bude proverovat na zaklade udaje vyse.
 do_datumu = StringVar()
 do_datumu.set(datetime.date.today().strftime("%d/%m/%Y").replace("/", "."))
 
-check_to_date = Label(root, width = 8, textvariable=do_datumu, height=1, borderwidth = 5, font=('Calibry 11'))
+check_to_date = Label(root, width = 8, textvariable=do_datumu, height=1, font=('Calibry 11'))
 check_to_date_tooltip = StringVar()
 check_to_date_tooltip.set("Da datumu:")
-check_to_date_tooltip_label = Label(root, textvariable=check_to_date_tooltip, font=('Calibry 8'))
+check_to_date_tooltip_label = Label(root, width=12, height=2, textvariable=check_to_date_tooltip, justify=LEFT, font=('Calibry 8'))
+
+# Empty 1
+empty1.grid(row=0,column=0,rowspan=1, columnspan=1)
 
 # Seznam polozek k provereni
-items_to_order_plans = Text(root, width=15, height=12, borderwidth = 5, font=('Calibry 11'))
+items_to_order_plans = Text(root, width=16, height=14, borderwidth = 5, font=('Calibry 11'))
 items_to_order_plans_tooltip = StringVar()
-items_to_order_plans_tooltip.set(f'Seznam itemů\nzadat do\nCQ order plánů:')
-items_to_order_plans_tooltip_label = Label(root, textvariable=items_to_order_plans_tooltip, font=('Calibry 8'))
+items_to_order_plans_tooltip.set(f'Seznam itemů zadat\n↓ do CQ order plánů: ↓')
+items_to_order_plans_tooltip_label = Label(root, width=25, padx=0, textvariable=items_to_order_plans_tooltip, justify=LEFT, font=('Calibry 8'))
 
 # Program log.
-log_window = Text(root, width=73, height=8, borderwidth = 5, font=('Calibry 8'))
+log_window = Text(root, width=125, height=8, borderwidth = 5, font=('Calibry 8'))
 log_window_tooltip = StringVar()
-log_window_tooltip.set(f'Info programu:')
-log_window_tooltip_label = Label(root, textvariable=log_window_tooltip, font=('Calibry 8'))
-
-log_text_1 = f'1.KROK: Spust CQ report "TEST_Sales_order_lines_master_plan.eq" ve slozce "webreports\After Sales\Ondra test" a vysledek reportu exportuj / uloz jako "master plan.txt" soubor do slozky Y:\Departments\Sales and Marketing\Aftersales\11_PLANNING\23_Python_utilities\Převody\Master plan txt\...'
-
+log_window_tooltip.set(f'↓ Info programu ↓')
+log_window_tooltip_label = Label(root, height=2, textvariable=log_window_tooltip, pady=1, font=('Calibry 8'))
 
 # Output window.
-output = Text(root, width=205, height=35, borderwidth = 5, font=('Calibry 11'))
+output = Text(root, width=120, height=22, borderwidth = 5, font=('Calibry 11'))
 output_tooltip = StringVar()
-output_tooltip.set(f'Output window:')
-output_label = Label(root, textvariable=output_tooltip, font=('Calibry 8'))
+output_tooltip.set(f'↓ Output window ↓')
+output_label = Label(root, textvariable=output_tooltip, width=23, height=2, justify=LEFT, font=('Calibry 8'))
 
 ### Tlacitka
 # Spusteni.
 run_btn_text = StringVar()
 run_btn_text.set("SPUSTIT")
-button_run = Button(root, textvariable=run_btn_text, padx=5, pady=40, borderwidth=5, command= lambda: run_program())
+button_run = Button(root, textvariable=run_btn_text, height=3, width=10, padx=5, pady=5, borderwidth=5, command= lambda: run_program())
+
+# Restart.
+button_restart = Button(root, height=1,width=10, text= f'RESTART', padx=5, pady=10, borderwidth=5, command=restart_program)
 
 # Zkopirovani do schranky itemy do Order planu.
-button_items_order_plan = Button(root, text= f'↑ Itemy Copy ↑', padx=5, pady=10, borderwidth=5, command=copy_items_order_plan)
+button_items_order_plan = Button(root, width=16, text= f'↑ COPY ↑', padx=5, pady=5, borderwidth=5, command=copy_items_order_plan)
 
 # Zkopirovani do schranky vysledek.
-button_copy_output = Button(root, text= f'Výsledek Copy →', padx=5, pady=10, borderwidth=5, command=copy_vysledek)
+button_copy_output = Button(root, height=3,width=16, text= f'→ COPY →', padx=5, pady=5, borderwidth=5, command=copy_vysledek)
 
 
-### Usporadani mrizky.
 
-# Dni k provereni.
+# ### Usporadani mrizky.
+# 
+# # Dni k provereni.
 next_cal_days_to_check_tooltip_label.grid(row=0, column=0, rowspan=1)
-next_cal_days_to_check.grid(row=1, column= 0, columnspan=1, padx=0, pady=5)
-
+next_cal_days_to_check.grid(row=1, column= 0, columnspan=1, padx=5, pady=5)
+ 
 # Rovna se.
 equal.grid(row= 1, column=1)
-
+ 
 # Datum do kdy proverovat.
-check_to_date_tooltip_label.grid(row=0, column=2)
-check_to_date.grid(row=1, column=2, padx=0)
-
-# Empty.
-empty.grid(row=1,column=0, rowspan=2)
+check_to_date_tooltip_label.grid(row=0, column=2, padx=5, pady=5)
+check_to_date.grid(row=1, column=2, padx=5, pady=5)
+# 
+# # Empty.
+empty1.grid(row=2,column=0, rowspan=1)
+empty4.grid(row=2,column=2)
 
 # Program log window.
-log_window_tooltip_label.grid(row=0, column=3)
-empty3.grid(row=0, column=4)
-log_window.grid(row=1, column=3, rowspan=2, columnspan=2, padx=0)
-
+log_window_tooltip_label.grid(row=0, column=6, columnspan=1)
+# empty3.grid(row=12, column=4)
+log_window.grid(row=1, column=6, rowspan=3, columnspan=60, padx=0, pady=0)
+# 
 # Itemy vyjet z order planu.
-items_to_order_plans_tooltip_label.grid(row=3, column=0, padx=20)
-items_to_order_plans.grid(row=4, column=0, columnspan=2, padx=5, pady=0, rowspan=1)
-
+items_to_order_plans_tooltip_label.grid(row=3, column=0, columnspan=3, padx=0)
+items_to_order_plans.grid(row=4, column=0, rowspan=1, columnspan=3, padx=0, pady=0)
+# empty5.grid(row=5, column=0, columnspan=3)
+# 
 # Tlacitka.
-button_run.grid(row=1, column=5)
-button_items_order_plan.grid(row=5, column=0, padx=0)
-button_copy_output.grid(row=6, column=0)
+empty2.grid(row=0,column=3, rowspan=2)
+button_run.grid(row=0, column=4, pady=5, rowspan=2)
+button_restart.grid(row=2,column=4)
+empty3.grid(row=0,column=5, rowspan=1)
+button_items_order_plan.grid(row=5, column=0, columnspan=3, padx=10)
+button_copy_output.grid(row=6, column=0, rowspan=2, columnspan=3, pady=10)
+empty6.grid(row=9, column=0, rowspan=3)
 
+# 
 # Output.
-output_label.grid(row=3, column=2 )
-output.grid(row=4, column=2,rowspan=3, columnspan=3, padx=5, pady=5)
+output_label.grid(row=3, column=3, columnspan=2)
+output.grid(row=4, column=3,rowspan=4, columnspan=60, padx=5, pady=5)
 
 root.mainloop()
