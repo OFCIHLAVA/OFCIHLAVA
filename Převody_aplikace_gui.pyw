@@ -262,7 +262,7 @@ def copy_vysledek():
 
 root = Tk()
 root.title("Převody PZN105 <-> PZN100")
-root.iconbitmap("graphics\icon.ico")
+root.iconbitmap("graphics\icon1.ico")
 root.geometry('1200x620+0+3')
 
 ### Postup programem.

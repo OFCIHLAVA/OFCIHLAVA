@@ -255,7 +255,7 @@ def copy_vysledek():
 
 root = Tk()
 root.title("NO EXCEL Převody PZN105 <-> PZN100")
-root.iconbitmap("graphics\icon.ico")
+root.iconbitmap("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody PZN100 ↔ PZN105\\graphics\\icon1.ico")
 root.geometry('1200x620+0+3')
 
 ### Postup programem.
