@@ -1,4 +1,3 @@
-# Zpracovani CQ dat kusovniku do databazi.
 def import_kusovniku_LN(file):
     with open(file) as file:
         # Nacucne kusovnik z importu z LN a rozdeli jednotlive linky podle mezer na list listu(s jednotlivymi pn)
@@ -29,6 +28,7 @@ def boudy_s_kusovnikem(unikatni_vrcholy, slinka_kusovniku):  # 2) Pro kazdy jede
                         seznam_vrcholu.append(pn)
         seznam_vseho[vrchol] = seznam_vrcholu  # Prida vrchol s unikatnimi pn do kvp vsech vrcholu(key) s jejich poddily(values).
         seznam_vrcholu = []
+    # print(f'DICT databaze kusovniku: {seznam_vseho}')
     seznam_vseho_str = str(seznam_vseho)
     na_linky = seznam_vseho_str.replace("], ", "<+++>")
     rozdeleni_pn = na_linky.replace("', '", "|")
@@ -38,10 +38,9 @@ def boudy_s_kusovnikem(unikatni_vrcholy, slinka_kusovniku):  # 2) Pro kazdy jede
     mezera = prava_hranata.replace(" ", "")
     leva_slozena = mezera.replace("{", "")
     prava_slozena = leva_slozena.replace("}", "")
-    vysledek_ocisteny = prava_slozena
-    return(vysledek_ocisteny)
+    str_dict_seznam_vseho = prava_slozena
+    return seznam_vseho, str_dict_seznam_vseho
 
-# Funkce pro dotazovani programem.
 def nacteni_databaze_boud_pro_dotaz(file): #Nacucne vsechny boudy s jejich kusovniky ze soburu outputu z predchoziho kroku a pripravi je jako kvp pro dotazovani.
     with open(file) as file:
         data = file.readlines()
@@ -62,9 +61,7 @@ def nacteni_databaze_boud_pro_dotaz(file): #Nacucne vsechny boudy s jejich kusov
           #print(items)
           #print(type(items))
           boudy_kvp[bouda] = items
-
-          seznam_boud = [bouda for bouda in boudy_kvp]
-    return seznam_boud, boudy_kvp
+    return(boudy_kvp)
 
 def programy_boud(file):  # 3a) nacucnuti txt boud a programu a rozdeleni ze string na kvp.
     with open(file) as file:
@@ -74,12 +71,9 @@ def programy_boud(file):  # 3a) nacucnuti txt boud a programu a rozdeleni ze str
         # print(len(databaze_programu))
         for dvojice in databaze_programu:
             # print(dvojice)
-            dvojice = dvojice.replace("\n","")
             sdvojice = dvojice.split(":")
             kvp_programy[sdvojice[0]] = sdvojice[1]
-        
-        seznam_boud_z_databaze_programu = [bouda for bouda in kvp_programy]
-    return seznam_boud_z_databaze_programu, kvp_programy
+    return (kvp_programy)
 
 def dotaz_pn_program(pn, databaze, programy):  # 3b) Projde kusovnik vsech bud a kdyz je pn v kusovniku boudy, vrati jeji program
     vysledne_programy = []  # Vysledna kombinace programu.
