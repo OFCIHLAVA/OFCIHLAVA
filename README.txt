@@ -42,12 +42,19 @@
 		• "databaze boud s kusovniky.txt" AKTUALIZACE:
 			Obsah databáze byl vyjetý z LN na jaře 2022. Vyjížděly se boudy, které v té době byly v PSR excelové databázi + nějaké ručně s Petrem Skalou.
 			Seznam boud v databázi "databaze boud s kusovniky.txt" by měl odpovídat seznamu všech boud z druhé databáze "seznam programu.txt".
-			Pro hromadnou kontrolu je potřeba získat všechna P/N následující hned po dělícím znaku "<+++>" - všechny unikatni boudy v databázi. (Způsob praktického provedení nechávám zcela na čtenářově fantazii...;) ) 
 			
-			Pro přidání nových boud je třeba vyjet CQ report pro nové boudy a přidat je nakonec dat ve formátu viz. 2 b) výše.
-			Pro smazání starých / nesprávných dat stačí z dat smazat požadované boudy s jejich programem.		
-
-						
+			• Ruční aktualizace databáze":
+				Pro hromadnou kontrolu je potřeba získat všechna P/N následující hned po dělícím znaku "<+++>" - všechny unikatni boudy v databázi. (Způsob praktického provedení nechávám zcela na čtenářově fantazii...;) ) 
+				Pro přidání nových boud je třeba vyjet CQ report pro nové boudy a přidat je nakonec dat ve formátu viz. 2 b) výše.
+				Pro smazání starých / nesprávných dat stačí z dat smazat požadované boudy s jejich kusovníkem.
+			• Aktualizace databáze pomocí programu "databaze_update_aplikace.py".
+				Nejprve je potřeba vyjet CQ report pro kusvoníky boud, které chceme přidat do databáze viz. bod 2. a uložit jako txt soubor do složky "Y:\Departments\Sales and Marketing\Aftersales\11_PLANNING\23_Python_utilities\SFExBFExMIX\databaze\Exporty LN". 	
+				Dále je třeba spustit program "databaze_update_aplikace.py" ve složce "Y:\Departments\Sales and Marketing\Aftersales\11_PLANNING\23_Python_utilities\SFExBFExMIX".
+				Program by měl porovnat stávajícíc databázi s boudami, které chcceme přidat.
+					→ Pokud už v databázi jsou a jejich kusovníky jsou totožné → nic se neupdatuje.
+					→ Pokud tam nejsou, nebo jsou, ale jejich kusovníky se neshodují → přidají se / přepíšou ve stávající databázi.
+					→ Výsledek se uloží jako soubor "POST_UPDATE_programy_databaze_update.txt" do složky "Y:\Departments\Sales and Marketing\Aftersales\11_PLANNING\23_Python_utilities\SFExBFExMIX\databaze".
+					→ Pokud chceme používat dále tuto updatovanou databázi, je třeba přepsat soubor puvodní databáze ve stejné složce tímto novým souborem a změnit jméno na původní - "databaze boud s kusovniky.txt"						
 
 ***Logika programu:***
 1. Program si vezme postupně každou položku ze seznamu zadaného uživatelem a prověří databázi kusovníků, zda je v ní někde obsažen.

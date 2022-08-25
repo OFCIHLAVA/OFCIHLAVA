@@ -7,17 +7,13 @@ from tkinter import RAISED, Button, Label, StringVar, Tk, END, Text
 path_kusovniky_databaze = 'Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\SFExBFExMIX\\databaze\\databaze boud s kusovniky.txt'
 path_program_databaze = 'Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\SFExBFExMIX\\databaze\\seznam programu.txt'
 
-priprava_databaze_kusovniku_boud = funkce_prace.nacteni_databaze_boud_pro_dotaz(path_kusovniky_databaze)
-seznam_boud_z_databaze_kusovniku = priprava_databaze_kusovniku_boud[0]
+databaze_kusovniku_pro_dotaz = funkce_prace.nacteni_databaze_boud_pro_dotaz(path_kusovniky_databaze)
+seznam_boud_z_databaze_kusovniku = [key for key in databaze_kusovniku_pro_dotaz]
+print("Databaze bud s kusovniky nactena a pripravena pro dotazovani . . .")
 
-databaze_kusovniku_pro_dotaz = priprava_databaze_kusovniku_boud[1]
-print("Data nactena a pripravena pro dotazovani...")
-
-priprava_databaze_programu_boud = funkce_prace.programy_boud(path_program_databaze)
-seznam_boud_z_databaze_programu = priprava_databaze_programu_boud[0]
-
-kvp_programy_pro_dotaz = priprava_databaze_programu_boud[1]
-print("Databaze programu vsech boud nacetena...\n")
+kvp_programy_pro_dotaz = funkce_prace.programy_boud(path_program_databaze)
+seznam_boud_z_databaze_programu = [key for key in kvp_programy_pro_dotaz]
+print("Databaze programu vsech boud nacetenaa pripravena pro dotazovani . . .\n")
 
 # Samotne dotazovani
 
