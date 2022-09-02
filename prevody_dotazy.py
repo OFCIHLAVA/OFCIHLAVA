@@ -20,7 +20,7 @@ def planned_available_na_skladu(shortage_linky, order_plan_skladu, zahlavi_vystu
                 datum = order_plan_skladu.get(vrchol).get(linka).get("Date")            
                 if datum <= pdd:
                     balance = order_plan_skladu.get(vrchol).get(linka).get("Transaction type txt")
-                    quantity = float(order_plan_skladu.get(vrchol).get(linka).get("Quantity"))                
+                    quantity = float(order_plan_skladu.get(vrchol).get(linka).get("Quantity").replace(",",""))                
                     if balance == "+ (Planned Receipt)":
                         vrchol_available_qty_na_skladu += quantity
                     elif balance == "- (Planned Issue)": 
@@ -53,7 +53,7 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
                     continue
                 datum = order_plan_skladu.get(vrchol).get(linka).get("Date")
                 balance = order_plan_skladu.get(vrchol).get(linka).get("Transaction type txt")
-                quantity = float(order_plan_skladu.get(vrchol).get(linka).get("Quantity"))
+                quantity = float(order_plan_skladu.get(vrchol).get(linka).get("Quantity").replace(",",""))
                 if balance == "+ (Planned Receipt)":
                     vrchol_available_qty_sklad += quantity
                 elif balance == "- (Planned Issue)": 
@@ -166,7 +166,7 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
                             continue                   
                         balance = order_plan_skladu_odkud_chchi_prevadet.get(vrchol).get(linka).get("Transaction type txt")
                         # print(f'pohyb: {balance}.')
-                        quantity = float(order_plan_skladu_odkud_chchi_prevadet.get(vrchol).get(linka).get("Quantity"))
+                        quantity = float(order_plan_skladu_odkud_chchi_prevadet.get(vrchol).get(linka).get("Quantity").replace(",",""))
                         # print(f'QTY: {quantity}.')
                         # print(quantity, type(quantity))
                         if balance == "+ (Planned Receipt)":
