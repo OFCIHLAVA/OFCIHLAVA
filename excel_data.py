@@ -172,7 +172,7 @@ def doplneni_sum_ordered_qty_do_vystupu(shortage_linky, zahlavi_vystupu): # Pro 
             continue        
         for linka in shortage_linky: # Projde vsechny linky a nacte pozadavky na Qty pro dane PDD datum pro dany vrchol.
             if linka[zahlavi_vystupu.index("Item")] == vrchol and linka[zahlavi_vystupu.index("Planned Delivery Date")] == pdd:
-                requested_qty_vrchol_pdd += float(linka[zahlavi_vystupu.index("Ordered Qty")])
+                requested_qty_vrchol_pdd += float(linka[zahlavi_vystupu.index("Ordered Qty")].replace(",",""))
         line.append(float(requested_qty_vrchol_pdd)) # Pripoji udaj na konec linky.
 
 def doplneni_zahlavi_do_vystupu(shortage_linky, zahlavi_vystupu):
