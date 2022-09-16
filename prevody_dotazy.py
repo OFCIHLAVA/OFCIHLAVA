@@ -43,10 +43,11 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
         
         pdd = line[zahlavi_vystupu.index("Planned Delivery Date")].split(".")
         pdd = datetime.date(int(pdd[-1]), int(pdd[1]), int(pdd[0]))     
-        vrchol_available_qty_sklad = 0
         
-        if order_plan_skladu.get(vrchol) != None:
+        if order_plan_skladu.get(vrchol) != None:            
+            vrchol_available_qty_sklad = 0
             for linka in range(1,len(order_plan_skladu.get(vrchol))+1):
+                print(vrchol, linka, len(order_plan_skladu.get(vrchol)))
                 order_type = order_plan_skladu.get(vrchol).get(linka).get("Order type txt")
                 if order_type.upper() == "PLANNED PURCHASE ORDER":
                     order_type = ""
@@ -61,14 +62,30 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
                 else:
                     print('POZOR - ERROR v +/- balance na u itemu {vrchol} na lince {linka}.')            
                 
+                # Moznosti vysledku:
+                # 1. Pokud pouze stock → ok.
                 if order_type.upper() == "STOCK" and len(order_plan_skladu.get(vrchol)) == 1:
-                    line.append(f'{dnesni_datum().strftime("%d/%m/%Y").replace("/",".")}, PA Qty: {vrchol_available_qty_sklad}')
-                    break
-                elif vrchol_available_qty_sklad >= 0 and datum > pdd:
+                   line.append(f'{dnesni_datum().strftime("%d/%m/%Y").replace("/",".")}, PA Qty: {vrchol_available_qty_sklad}')
+                   break
+                # 2. Pokud po projiti linky je Planned available >= 0 a datum je vetsi nez PDD, → tak datum (neni treba resit pro PDD, dela se jen pro linky, kde uz vim, ze PA v PDD je < 0).
+                elif vrchol_available_qty_sklad >= 0 and datum > pdd:                    
                     line.append(f'{datum.strftime("%d/%m/%Y").replace("/",".")}, PA Qty: {vrchol_available_qty_sklad}')
-                    break
-            else:
-                line.append(f'Neexistuje')              
+                    break                
+                # 3. Pokud jsem prosel vsechny linky a nespustila se zadna z podminek vyse.
+                elif linka == len(order_plan_skladu.get(vrchol)):
+                    # Pokud Planned available na posledni lince >= 0.
+                    if vrchol_available_qty_sklad >= 0:
+                        # a) Pokud datum posledni linky je pred PDD → dnesni datum.
+                        if datum < pdd:
+                            line.append(f'{dnesni_datum().strftime("%d/%m/%Y").replace("/",".")}, PA Qty: {vrchol_available_qty_sklad}')
+                            break
+                        # b) Pokud datum posledni linky je po PDD → datum linky.
+                        else:                        
+                            line.append(f'{datum.strftime("%d/%m/%Y").replace("/",".")}, PA Qty: {vrchol_available_qty_sklad}')
+                            break
+                    else:
+                        line.append(f'Neexistuje')
+                        break              
         else:
             line.append(f'No data.')   
 
@@ -217,4 +234,4 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
                 else:
                     # print(f'Nelze prevest! {vrchol} {sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane} Qty na {pdd_linky}. Linky v op100 {shortage_linky_pri_prevodu} by se dostaly do minusu.')
                     ### Pripojeni vyslednu na konec linky.
-                    line.append(f'Nelze prevest! {vrchol} {sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane} Qty na {pdd_linky}. Linky v op100 {shortage_linky_pri_prevodu} by se dostaly do minusu.')
+                    line.append(f'Nelze prevest! {vrchol} {abs(sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane)} Qty na {pdd_linky}. Linky v op100 {shortage_linky_pri_prevodu} by se dostaly do minusu.')
