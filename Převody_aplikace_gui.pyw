@@ -40,7 +40,7 @@ def run_program():
         
         # Nacteni Master planu CQ.
         global master_plan_data        
-        master_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody PZN100 ↔ PZN105\\Master plan txt\\master plan.txt")
+        master_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\Master_plan_txt\\Prevody_Sales_order_lines_master_plan.cq")
         log_text_2 = f'• Master plan data načtena . . .\n' 
         log_window.insert(END, log_text_2)
 
@@ -103,7 +103,7 @@ def run_program():
         output.delete(1.0, END)
         
         global order_plan_data
-        order_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody PZN100 ↔ PZN105\\Order plan\\order plan 100+105.txt")
+        order_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\Order plan\\order plan 100+105.txt")
         log_text_10 = f'\n• CQ data načtena . . .\n' 
         log_window.insert(END, log_text_10)               
 
@@ -160,10 +160,10 @@ def run_program():
         log_text_18 = f'• Sum of required Qty přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_18)  
 
-        # Doplneni Planned available na PZN105 na dane PDD linky.
+        # Doplneni Planned available na PZN105 na dane PDD linky + vytvoreni seznamu purchase orders , ktere uz se pocitaji do Planned available, ale jeste musi dnes prijit.
         prevody_dotazy.planned_available_na_skladu(shortage_linky_proverit, order_plan_pzn_105, vystup_zahlavi)
         log_text_19 = f'• Planned available na PZN105 přidáno do výstupu . . .\n'         
-        log_window.insert(END, log_text_19) 
+        log_window.insert(END, log_text_19)
 
         # Doplneni Planned available na PZN100 na dane PDD linky.
         prevody_dotazy.planned_available_na_skladu(shortage_linky_proverit, order_plan_pzn_100, vystup_zahlavi)
@@ -200,7 +200,7 @@ def run_program():
         # Doplneni udaje, zda mozno prevest z PZN100 na PZN105 aniz by vznikl shortage na ostatnich linkach order planu PZN100.
         prevody_dotazy.next_planned_available_date_simulate_prevody(shortage_linky_proverit, order_plan_pzn_105, order_plan_pzn_100, vystup_zahlavi)
         log_text_25 = f'• Info zda možno převést přidáno do výstupu . . .\n'         
-        log_window.insert(END, log_text_25) 
+        log_window.insert(END, log_text_25)
 
         # Doplneni zahlavi do seznamu shortage linek k provereni.
         excel_data.doplneni_zahlavi_do_vystupu(shortage_linky_proverit, vystup_zahlavi)
@@ -262,7 +262,7 @@ def copy_vysledek():
 
 root = Tk()
 root.title("Převody PZN105 <-> PZN100")
-root.iconbitmap("graphics\icon1.ico")
+root.iconbitmap("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\graphics\\icon1.ico")
 root.geometry('1200x620+0+3')
 
 ### Postup programem.
@@ -293,11 +293,11 @@ next_cal_days_to_check_tooltip_label = Label(root, textvariable=next_cal_days_to
 
 # Okno zobrazujici datum, do kdy se bude proverovat na zaklade udaje vyse.
 do_datumu = StringVar()
-do_datumu.set(datetime.date.today().strftime("%d/%m/%Y").replace("/", "."))
+# do_datumu.set(datetime.date.today().strftime("%d/%m/%Y").replace("/", "."))
 
 check_to_date = Label(root, width = 8, textvariable=do_datumu, height=1, font=('Calibry 11'))
 check_to_date_tooltip = StringVar()
-check_to_date_tooltip.set("Da datumu:")
+check_to_date_tooltip.set("Do datumu:")
 check_to_date_tooltip_label = Label(root, width=12, height=2, textvariable=check_to_date_tooltip, justify=LEFT, font=('Calibry 8'))
 
 # Empty 1

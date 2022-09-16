@@ -1,8 +1,5 @@
-from msilib.schema import Font
-from re import S
 from tkinter import *
 import datetime
-from unicodedata import name
 
 from prevody_funkce import prevody_dotazy
 from prevody_data import cq_data, excel_data
@@ -42,7 +39,7 @@ def run_program():
         
         # Nacteni Master planu CQ.
         global master_plan_data        
-        master_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody PZN100 ↔ PZN105\\Master plan txt\\master plan.txt")
+        master_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\Master_plan_txt\\Prevody_Sales_order_lines_master_plan.cq")
         log_text_2 = f'• Master plan data načtena . . .\n' 
         log_window.insert(END, log_text_2)
 
@@ -105,7 +102,7 @@ def run_program():
         output.delete(1.0, END)
         
         global order_plan_data
-        order_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody PZN100 ↔ PZN105\\Order plan\\order plan 100+105.txt")
+        order_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\Order plan\\order plan 100+105.txt")
         log_text_10 = f'\n• CQ data načtena . . .\n' 
         log_window.insert(END, log_text_10)               
 
@@ -255,7 +252,7 @@ def copy_vysledek():
 
 root = Tk()
 root.title("NO EXCEL Převody PZN105 <-> PZN100")
-root.iconbitmap("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Převody PZN100 ↔ PZN105\\graphics\\icon1.ico")
+root.iconbitmap("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\graphics\\icon1.ico")
 root.geometry('1200x620+0+3')
 
 ### Postup programem.

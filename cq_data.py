@@ -13,7 +13,7 @@ from .excel_data import dnesni_datum, neplatne_datum_ln
 
 
 def data_import(cq_export_cesta): # Nacteni dat z CQ reportu.
-    with open(cq_export_cesta,'r') as input_file:
+    with open(cq_export_cesta,'r', encoding='Windows-1250') as input_file:
         data = input_file.readlines()
         input_file.close()
     return data
@@ -245,10 +245,12 @@ def zahlavi_vystupu_cq(zahlavi_master_planu): # Pripravi zahlavi sloupcu vystupu
     zahlavi_vystupu.append(zahlavi_master_planu[ordered_qty_sloupec_index])
     zahlavi_vystupu.append("Sum req. Qty Item+PDD")
     zahlavi_vystupu.append("Planned available Qty on PZN105 at PDD")
+    zahlavi_vystupu.append("PZN105 purchase orders, ktere musi dnes prijit, aby PA odpovidalo")
     zahlavi_vystupu.append("Planned available Qty on PZN100 at PDD")
+    zahlavi_vystupu.append("PZN100 purchase orders, ktere musi dnes prijit, aby PA odpovidalo")
     zahlavi_vystupu.append("Already requested in Tabulka prevodu na PZN105")
-    zahlavi_vystupu.append("PZN 105 Nejblizsi datum + mnozstvi: kdy PA >= 0.")
-    zahlavi_vystupu.append("PZN 100 Nejblizsi datum + mnozstvi: kdy PA >= 0.")
+    zahlavi_vystupu.append("PZN 105 Nejblizsi datum + mnozstvi: kdy PA >= 0")
+    zahlavi_vystupu.append("PZN 100 Nejblizsi datum + mnozstvi: kdy PA >= 0")
     zahlavi_vystupu.append("Mozno prevest z PZN100 aniz by se ohrozily budouci linky na PZN100?")
     return zahlavi_vystupu
 

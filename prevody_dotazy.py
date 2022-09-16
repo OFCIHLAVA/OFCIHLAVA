@@ -4,6 +4,8 @@ from prevody_data.excel_data import dnesni_datum
 
 def planned_available_na_skladu(shortage_linky, order_plan_skladu, zahlavi_vystupu): # Doplneni Planned available daneho itemu v dane PDD podle linky. (realny stav / shortage na PZN105:)
     for line in shortage_linky:
+        # Vyrvori seznam linek order planu, kde jsou purchase ordery, ktere uz se pocitaji do planned available, ale jeste nedorazily k nam.
+        todays_purchase_orders_counted_but_not_yet_here = list()
         order_type = ""    
         vrchol = line[zahlavi_vystupu.index("Item")]
         if vrchol == "Item":
@@ -14,10 +16,16 @@ def planned_available_na_skladu(shortage_linky, order_plan_skladu, zahlavi_vystu
         if order_plan_skladu.get(vrchol) != None:
             for linka in order_plan_skladu.get(vrchol):
                 order_type = order_plan_skladu.get(vrchol).get(linka).get("Order type txt")
+                datum = order_plan_skladu.get(vrchol).get(linka).get("Date")
+
+                # if order_type.upper() == "PURCHASE ORDER":
+                    # print(vrchol, datum, dnesni_datum())
                 if order_type.upper() == "PLANNED PURCHASE ORDER":
                     order_type = ""
                     continue
-                datum = order_plan_skladu.get(vrchol).get(linka).get("Date")            
+                elif order_type.upper() == "PURCHASE ORDER" and datum == dnesni_datum():
+                    todays_purchase_orders_counted_but_not_yet_here.append(f'{order_plan_skladu.get(vrchol).get(linka).get("Order Number")}, Qty {round(float(order_plan_skladu.get(vrchol).get(linka).get("Quantity")), 1)}')
+                    # print(todays_purchase_orders_counted_but_not_yet_here)
                 if datum <= pdd:
                     balance = order_plan_skladu.get(vrchol).get(linka).get("Transaction type txt")
                     quantity = float(order_plan_skladu.get(vrchol).get(linka).get("Quantity").replace(",",""))                
@@ -28,6 +36,10 @@ def planned_available_na_skladu(shortage_linky, order_plan_skladu, zahlavi_vystu
                     else:
                         print('POZOR - ERROR order planu v +/- balance na u itemu {vrchol} na lince {linka}.')
         line.append(float(vrchol_available_qty_na_skladu))
+        if len(todays_purchase_orders_counted_but_not_yet_here) != 0:
+            line.append("; ".join(todays_purchase_orders_counted_but_not_yet_here))
+        else:
+            line.append("-")
 
 def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_skladu, zahlavi_vystupu):# Doplneni nejblizsiho datumu + PA, kdy bude Planned Available na skladu pro dany item v lince alespon 0 nebo vyssi.
 
@@ -47,7 +59,7 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
         if order_plan_skladu.get(vrchol) != None:            
             vrchol_available_qty_sklad = 0
             for linka in range(1,len(order_plan_skladu.get(vrchol))+1):
-                print(vrchol, linka, len(order_plan_skladu.get(vrchol)))
+                # print(vrchol, linka, len(order_plan_skladu.get(vrchol)))
                 order_type = order_plan_skladu.get(vrchol).get(linka).get("Order type txt")
                 if order_type.upper() == "PLANNED PURCHASE ORDER":
                     order_type = ""
