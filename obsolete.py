@@ -1,9 +1,23 @@
 from funkce.cq_data import data_date_formating, data_import, data_headings,import_data_cleaning, order_plan_database_pzn100, order_plan_database_pzn105, order_plan_database_pzn310, obsolete_polozky_database
+from funkce.funkce_prace import dotaz_pn_program, nacteni_databaze_boud_pro_dotaz, programy_boud
 from funkce.prevody_dotazy import planned_available_na_skladu, po_in_process_skladu, realny_demand_na_skladu
 
 import datetime
 import sys
 import time
+
+
+# Priprava databazi pro dotazovani v jakych boudach je item obsazen.
+path_kusovniky_databaze = 'Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\SFExBFExMIX\\databaze\\databaze boud s kusovniky.txt'
+path_program_databaze = 'Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\SFExBFExMIX\\databaze\\seznam programu.txt'
+
+databaze_kusovniku_pro_dotaz = nacteni_databaze_boud_pro_dotaz(path_kusovniky_databaze)
+seznam_boud_z_databaze_kusovniku = [key for key in databaze_kusovniku_pro_dotaz]
+print("Databaze bud s kusovniky nactena a pripravena pro dotazovani . . .")
+
+kvp_programy_pro_dotaz = programy_boud(path_program_databaze)
+seznam_boud_z_databaze_programu = [key for key in kvp_programy_pro_dotaz]
+print("Databaze programu vsech boud nacetenaa pripravena pro dotazovani . . .\n")
 
 obsolete_file_import = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Obsolete analýza\\polozky_proverit\\obsolete polozky.txt"
 obsolete_order_plan_import = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Obsolete analýza\\order_plany\\order_plan_100_105_310.txt"
@@ -92,12 +106,12 @@ order_plan_310 = order_plan_database_pzn310(obsolete_polozky_order_plan_data, ob
 # A) 105.
 # print(obsolete_polozky_databaze)
 
-input(f'\n\nProgram ready.\nZabere to cca {round(len(obs_polozky_seznam)*0.0534)} sekund / {round(len(obs_polozky_seznam)*0.0534/60,1)} minut\n\nSpust stiskem ENTER . . .')
+input(f'\n\nProgram ready.\nZabere to cca {round(len(obs_polozky_seznam)*0.141)} sekund / {round(len(obs_polozky_seznam)*0.141/60,1)} minut\n\nSpust stiskem ENTER . . .')
 start_time = time.time()
 
 print(f'Item|planned available 105 (pegging)|Last transaction 105|planned available 310 (pegging)|Last transaction 310|Real demand 100 (pegging)|Sum qty already incoming Purchase orders na 100')
 with open("output.txt", "w", encoding="utf-8") as output:
-    output.write(f'Item|planned available 105 (pegging)|Last transaction 105|planned available 310 (pegging)|Last transaction 310|Real demand 100 (pegging)|Sum qty already incoming Purchase orders na 100\n')
+    output.write(f'Item|planned available 105 (pegging)|Last transaction 105|planned available 310 (pegging)|Last transaction 310|Real demand 100 (pegging)|Sum qty already incoming Purchase orders na 100|Obsazeno v boudach\n')
 # 1. Projiti databaze vsech obsolete polozek na 105 a 310:
 for item, sklady in obsolete_polozky_databaze.items():    
     # print(item)
@@ -123,6 +137,8 @@ for item, sklady in obsolete_polozky_databaze.items():
     pole_310_last_t = "reset hodnota"
     last_trans_date_310 = datetime.date(1,1,1)
     transaction_date_310 = datetime.date(1,1,1)
+
+    v_boudach = "reset hodnota"
 
 
     # Prochazeni 105 a 310 op na planned available.
@@ -280,6 +296,11 @@ for item, sklady in obsolete_polozky_databaze.items():
         pole_105_last_t = f'POZOR! item {item} nema zadne transtaction data.'
         pole_310_last_t = f'POZOR! item {item} nema zadne transtaction data.'
 
+    # Prochazeni kusovníků bud z SFExBFE databáze pro zjisteni, ve kterých všech boudách se item nachází.
+    v_boudach = dotaz_pn_program(item, databaze_kusovniku_pro_dotaz, kvp_programy_pro_dotaz)
+    v_boudach = v_boudach[1]
+    v_boudach = [bouda_program.split("(")[0] for bouda_program in v_boudach]
+    v_boudach = set(v_boudach)
     # tisk dat
 
     if type(pole_105_pa) == float:
@@ -289,14 +310,19 @@ for item, sklady in obsolete_polozky_databaze.items():
     if type(pole_100_real_demand) == float:
         pole_100_real_demand = str(pole_100_real_demand).replace(".",",") 
     if type(pole_100_pur_o_in_process) == float:
-        pole_100_pur_o_in_process = str(pole_100_pur_o_in_process).replace(".",",") 
+        pole_100_pur_o_in_process = str(pole_100_pur_o_in_process).replace(".",",")
+    if len(v_boudach) == 0:
+        v_boudach = "Neni v zadnem kusovniku v databazi"
+    else:
+        v_boudach = ",".join(v_boudach)     
 
 
 
-    print(f'{item}|{pole_105_pa}|{pole_105_last_t}|{pole_310_pa}|{pole_310_last_t}|{pole_100_real_demand}|{pole_100_pur_o_in_process}')
+
+    print(f'{item}|{pole_105_pa}|{pole_105_last_t}|{pole_310_pa}|{pole_310_last_t}|{pole_100_real_demand}|{pole_100_pur_o_in_process}|{v_boudach}')
 
     with open("output.txt", "a", encoding="utf-8") as output:
-        output.write(f'{item}|{pole_105_pa}|{pole_105_last_t}|{pole_310_pa}|{pole_310_last_t}|{pole_100_real_demand}|{pole_100_pur_o_in_process}')
+        output.write(f'{item}|{pole_105_pa}|{pole_105_last_t}|{pole_310_pa}|{pole_310_last_t}|{pole_100_real_demand}|{pole_100_pur_o_in_process}|{v_boudach}')
         output.write('\n')
 
 print("\n\n--- %s seconds ---" % (time.time() - start_time))
