@@ -1,0 +1,25 @@
+viewpoint all_tables;
+
+where 
+   inventory_by_warehouse_whwmd216:warehouse one of
+   "PZN105", "PZN310", "PZN100"
+and
+   inventory_by_warehouse_whwmd216:item [1,9] = "         "
+and
+   inventory_by_warehouse_whwmd216:inventory_on_hand <> 0 
+
+list/domain="inventory_by_warehouse_whwmd216"
+  "|"  
+  inventory_by_warehouse_whwmd216:warehouse/heading = "***|Warehouse"/duplicates 
+  "|"  
+  inventory_by_warehouse_whwmd216:item [10,47]/heading = "|  Item" 
+  "|"  
+  inventory_by_warehouse_whwmd216:inventory_on_hand/heading = "|  Inventory on hand"/duplicates
+  "|"   
+  inventory_by_warehouse_whwmd216:inventory_on_order/heading = "|  Inventory on order"/duplicates
+  "|"   
+  inventory_by_warehouse_whwmd216:inventory_allocated/heading = "|  Inventory allocated"/duplicates
+  "|"   
+  inventory_by_warehouse_whwmd216:inventory_committed/heading = "|  Inventory commited"/duplicates
+  "|"   
+  inventory_by_warehouse_whwmd216:inventory_blocked/heading = "|  Inventory blocked"/duplicates

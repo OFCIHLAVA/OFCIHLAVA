@@ -1,0 +1,76 @@
+viewpoint all_tables;
+
+define
+   string asd = "         "+pegging_transactions:plan_item [13,50]    
+
+   file purchase_data_nakupci = access item_purchase_data,
+     set item_purchase_data:item = asd,
+     one to one;
+
+   file employee_name = access employees_general,
+     set employees_general:employee = purchase_data_nakupci:buyer,
+     one to one;
+
+
+where 
+
+  (
+  pegging_transactions:plan_item begins 
+    " "
+   or 
+  pegging_transactions:plan_item begins
+   "PZ5"
+   or 
+  (pegging_transactions:plan_item begins
+   "PZ4"
+      and
+   pegging_transactions:plan_item [4,12] = "         ")
+   )
+
+
+
+ and pegging_transactions:plan_item [13,47] one of
+
+"219009-135"
+
+ and pegging_transactions:scenario = 
+    "ACT"
+ and pegging_transactions:order_type <> 45
+
+list/duplicates/domain="pegging_transactions"
+  "|"
+  if pegging_transactions:plan_item [1,3] = "   " then "PZN100" else pegging_transactions:plan_item [1,3]/heading = "***|  Cluster"/duplicates
+  "|"
+  pegging_transactions:plan_item [13,47]/heading = "|  Item"/duplicates
+  "|"
+  employee_name:name/heading = "|  Buyer"/duplicates
+  "|"
+  purchase_data_nakupci:supply_time/heading = "|  Supply LT [work days]"/duplicates
+  "|"
+  pegging_transactions:scenario/heading = "|  Scenario"/duplicates
+  "|"
+  pegging_transactions:transaction_number/heading = "|  Transaction Number"/duplicates 
+  "|"
+  pegging_transactions:order_type/heading = "|  Order type"/duplicates 
+  "|"
+  pegging_transactions:order_number/heading = "|  Order Number"/duplicates  
+  "|"
+  pegging_transactions:line_position_number/heading = "|  Line position"/duplicates  
+  "|"
+  pegging_transactions:date_dz/heading = "|  Date"/duplicates/displaywidth= 10
+  "|"
+  pegging_transactions:position_number/heading = "|  Position"/duplicates 
+  "|"
+  pegging_transactions:bom_line/heading = "|  BOM line"/duplicates  
+  "|"
+  pegging_transactions:transaction_type/heading = "|  Type"/duplicates  
+  "|"
+  pegging_transactions:quantity/heading = "|  Quantity"/duplicates  
+  "|"
+  pegging_transactions:order_type_text/heading = "|  Order type txt"/duplicates  
+  "|"
+  pegging_transactions:transaction_type_text/heading = "|  Transaction type txt"/duplicates 
+
+sorted by
+ pegging_transactions:plan_item
+ pegging_transactions:date_dz

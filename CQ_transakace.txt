@@ -1,0 +1,43 @@
+viewpoint all_tables;
+
+  
+where 
+  (inventory_transactions_by_item_a:order begins
+    "PM5"
+  or
+  inventory_transactions_by_item_a:order begins
+    "PS02"
+  or inventory_transactions_by_item_a:order begins
+    "PS03"
+  or inventory_transactions_by_item_a:order begins
+    "PS05"
+  or inventory_transactions_by_item_a:order begins
+    "PS0E")
+  and inventory_transactions_by_item_a:transaction_type =
+  5
+  and   inventory_transactions_by_item_a:item [10,47] one of  
+"186012-47"
+
+
+  
+  and inventory_transactions_by_item_a:warehouse one of
+  "PZN105", "PZN310"
+
+
+  and inventory_transactions_by_item_a:quantity_inventory_unit >
+  0
+  and inventory_transactions_by_item_a:warehouse not contains
+  "PZN9"
+  and inventory_transactions_by_item_a:transaction_date >
+  1.1.2016
+
+list/duplicates/domain="inventory_transactions_by_item_a"
+  "|"
+  inventory_transactions_by_item_a:item[10,47]/heading = "***|  Item"/duplicates
+  "|"   
+  inventory_transactions_by_item_a:warehouse/heading = "|  Warehouse"/duplicates 
+  "|" 
+  inventory_transactions_by_item_a:transaction_date/heading = "|  Date"/duplicates/displaywidth= 10
+
+sorted by
+  inventory_transactions_by_item_a:transaction_date_dz/descending
