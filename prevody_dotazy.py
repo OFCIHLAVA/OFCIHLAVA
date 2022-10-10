@@ -130,8 +130,12 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
                 # print(vrchol, linka, len(order_plan_skladu.get(vrchol)))
                 order_type = order_plan_skladu.get(vrchol).get(linka).get("Order type txt")
                 if order_type.upper() == "PLANNED PURCHASE ORDER":
-                    order_type = ""
-                    continue
+                    if len(order_plan_skladu.get(vrchol)) > 1:
+                        order_type = ""
+                        continue
+                    else:
+                        line.append(f'Neexistuje')
+                        break
                 datum = order_plan_skladu.get(vrchol).get(linka).get("Date")
                 balance = order_plan_skladu.get(vrchol).get(linka).get("Transaction type txt")
                 quantity = float(order_plan_skladu.get(vrchol).get(linka).get("Quantity").replace(",",""))
@@ -169,7 +173,7 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
                             break
                     else:
                         line.append(f'Neexistuje')
-                        break              
+                        break                       
         else:
             line.append(f'No data.')   
 
@@ -321,9 +325,15 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
                     line.append(f'Nelze! {vrchol} {abs(sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane)} Qty na {pdd_linky}. Linky v op100 {shortage_linky_pri_prevodu} by se dostaly do minusu.')
 
 def location_to_prevest_from(shortage_linky, warehouse_locations, zahlavi_vystupu): # Doplneni sloupce s informaci, z jake lokace nechat dil prevest.
+    # print(zahlavi_vystupu)
+    
     for line in shortage_linky:
-        print(f'Linka PRED: {line}')
+        # print(f'Linka PRED: {line}')
+        # print(f'len line {len(line)}')
+        # for zahlavi, udaj in enumerate(line):
+            # print(zahlavi_vystupu[zahlavi], udaj,sep=":")
         # Prevadene linky pozname podle textu "Prevest" v sloupci Mozno prevest. 
+        # print(zahlavi_vystupu.index("Mozno prevest z PZN100 aniz by se ohrozily budouci linky na PZN100?"))
         mozno_prevest = line[zahlavi_vystupu.index("Mozno prevest z PZN100 aniz by se ohrozily budouci linky na PZN100?")]
         prevest = False
         if "Prevest" in mozno_prevest:
@@ -338,7 +348,7 @@ def location_to_prevest_from(shortage_linky, warehouse_locations, zahlavi_vystup
             if warehouse_locations.get(vrchol) == None:
                 line.append("POZOR! rika to ze prevod, ale lokace na skladu jso prazdne!")      
             else:
-                print(warehouse_locations.get(vrchol))
+                # print(warehouse_locations.get(vrchol))
                 for linka in warehouse_locations.get(vrchol):
                     linka_ioh = float(warehouse_locations.get(vrchol).get(linka).get("Inventory on hand").replace(",",""))
                     linka_location = warehouse_locations.get(vrchol).get(linka).get("Location")
@@ -349,4 +359,4 @@ def location_to_prevest_from(shortage_linky, warehouse_locations, zahlavi_vystup
                 line.append(max_ioh_location)
         else:
             line.append("-")
-        print(f'Linka PO: {line}')        
+        # print(f'Linka PO: {line}')        

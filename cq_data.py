@@ -1,7 +1,6 @@
 import datetime
 from .excel_data import dnesni_datum, neplatne_datum_ln
 
-# Obecne funkce:
 
 def data_import(cq_export_cesta): # Nacteni dat z CQ reportu.
     with open(cq_export_cesta,'r', encoding='Windows-1250') as input_file:
@@ -16,6 +15,23 @@ def data_headings(data): # Vytvoreni zahlavi sloupcu z reportu.
             del data_headings[0]
             break
     return data_headings  
+
+def data_headings_order_plan(op_data): # Vytvoreni zahlavi sloupcu z reportu.
+    for line in op_data:
+        if "***" in line[2:5]: # Identifikator linky se zahlavim z cq reportu.
+            data_headings = [pole.strip() for pole in line.split("|")]
+            data_headings[0] = "Item line in LN" # Prepsani "***" v prvnim sloupci, kde bude pozdeji doplneno poradi linky v cq reportu.
+            break
+    return data_headings
+
+def data_headings_master_plan(mp_data): # Vytvoreni zahlavi sloupcu z reportu.
+    for line in mp_data:
+        if "***" in line[2:5]: # Identifikator linky se zahlavim z cq reportu.
+            data_headings = [pole.strip() for pole in line.split("|")]
+            data_headings[0] = "Row in Master plan" # Prepsani "***" v prvnim sloupci, kde bude pozdeji doplneno poradi linky v Master plan reportu.
+            data_headings.append("Availability") # Pridani heading Availibility na konec - bude doplneno pozdeji.
+            break
+    return data_headings    
 
 def import_data_cleaning(data): # Ocisteni dat a nahrazeni prazdnych poli za "0".
     cl_data = list()    
@@ -32,13 +48,92 @@ def import_data_cleaning(data): # Ocisteni dat a nahrazeni prazdnych poli za "0"
             data = cl_data
     return data
 
+def add_line_id_to_order_plan_data(op_data, op_data_headings): # Pridani ID linky pro jednotlive vrcholy do cq dat jako int na pozici 0 kazde linky. Zvlast resen sklad PZN100 a PZN105.
+    pocet_linek_vrcholu_PZN100 = {}
+    pocet_linek_vrcholu_PZN105 = {}
+    pocet_linek_vrcholu_PZN310 = {}
+    
+    for heading in op_data_headings: # Nalezeni indexu sloupcu skladu a vrcholu v cq importu.
+        if "CLUSTER" in heading.upper() or "WAREHOUSE" in heading.upper():
+            sklad_index = op_data_headings.index(heading)
+        if heading.upper() == "ITEM":
+            vrchol_index = op_data_headings.index(heading)
+    
+    for line in op_data:
+        sklad = line[sklad_index-1] # -1 Protoze v headings uz je zahlavi 1. skoupce (id line), ale v datech jeste ne, teprve ho tam ted pridame. (data jsou kratsi o 1 pozici).
+        vrchol = line[vrchol_index-1] # -1 Protoze v headings uz je zahlavi 1. skoupce (id line), ale v datech jeste ne, teprve ho tam ted pridame. (data jsou kratsi o 1 pozici).
+
+        #print(sklad)
+        #print(vrchol)
+
+        # PZN100
+        if sklad.upper() == "PZN100":
+            if vrchol not in pocet_linek_vrcholu_PZN100:
+                pocet_linek_vrcholu_PZN100[vrchol] = 0 
+            line.insert(0,pocet_linek_vrcholu_PZN100.get(vrchol)+1) # Vlozeni sloupce ID linky pred stavavjici data. (rozsireni dat o jeden sloupec)
+            # print(line)
+            pocet_linek_vrcholu_PZN100[vrchol] +=1
+
+        # PZN105
+        elif sklad.upper() == "PZ5" or sklad.upper() == "PZN105":
+            # print(f"PZN105")
+            if vrchol not in pocet_linek_vrcholu_PZN105:
+                pocet_linek_vrcholu_PZN105[vrchol] = 0 
+            line.insert(0,pocet_linek_vrcholu_PZN105.get(vrchol)+1)
+            pocet_linek_vrcholu_PZN105[vrchol] +=1
+
+        # PZN310
+        elif sklad.upper() == "PZ4" or sklad.upper() == "PZN310":
+            # print(f"PZN310")
+            if vrchol not in pocet_linek_vrcholu_PZN310:
+                pocet_linek_vrcholu_PZN310[vrchol] = 0 
+            line.insert(0,pocet_linek_vrcholu_PZN310.get(vrchol)+1)
+            pocet_linek_vrcholu_PZN310[vrchol] +=1
+    return op_data
+
+def add_row_number_to_master_plan_data(mp_data): # Pridani poradi linky v Master planu do cq data Master planu.  
+    for row, linka in enumerate(mp_data):
+        linka.insert(0,row+1)
+    return(mp_data)
+
+def add_availability_master_plan_data(mp_data, mp_data_headings): # Pridani sloupce Availability do cq data Master planu.  
+    for heading in mp_data_headings:
+        if heading.upper() == "INVENTORY ON HAND":
+            inventory_on_hand_index = mp_data_headings.index(heading)
+        elif heading.upper() == "KLIC1":
+            klic1_index = mp_data_headings.index(heading)
+        elif heading.upper() == "ORDERED QTY":
+            ordered_qty_index = mp_data_headings.index(heading)
+
+    item_already_requested_qty_before_current_line = dict()
+
+    for line in mp_data:
+        inventory_on_hand = float(line[inventory_on_hand_index].replace(",",""))
+        ordered_qty = float(line[ordered_qty_index].replace(",",""))
+        item = line[klic1_index]
+
+        # pokud jeste ten item nebyl req before, pridej ho do uz requested s ordered qty na lince:
+        if not item_already_requested_qty_before_current_line.get(item):
+            item_already_requested_qty_before_current_line[item] = ordered_qty
+        # Pokud uz tam byl, pricti k te hodnote co uz tam byla ordered qty na lince:
+        else:
+            item_already_requested_qty_before_current_line[item] = item_already_requested_qty_before_current_line.get(item) + ordered_qty
+
+        # Shortage pokud inventory on hand - already requested < 0 , jinak Available.
+        planned_available_po_prodeji_linky = inventory_on_hand - item_already_requested_qty_before_current_line.get(item)
+        if planned_available_po_prodeji_linky < 0:
+            line.append("Shortage")
+        else:
+            line.append("Available")
+    return mp_data
+
 def data_date_formating(data, data_headings): # Prevedeni pole datumu na date format.
-    datumy_indexy = [data_headings.index(heading) for heading in data_headings if "DATE" in heading.upper()]
+    datumy = [data_headings.index(heading) for heading in data_headings if "DATE" in heading.upper()]
 
     for line in data: # Prevedeni pole datumu na date format.
-        # print(line)
+        
         # print(datumy_indexy)
-        for datum_index in datumy_indexy:      
+        for datum_index in datumy:      
             den, mesic, rok = line[datum_index].split("/")
             # print(rok, mesic, den)
             datum = datetime.date(int(rok), int(mesic), int(den))
@@ -72,47 +167,6 @@ def generic_database(data, headings): # Vytvoreni dictionary databaze jednotlivy
             database_dictionary[item][len(database_dictionary[item])+1] = data_dict
             # print(war_loc_database_dictionary)
     return database_dictionary
-
-# Order plan data funkce:
-
-def data_headings_order_plan(op_data): # Vytvoreni zahlavi sloupcu z reportu.
-    for line in op_data:
-        if "***" in line[2:5]: # Identifikator linky se zahlavim z cq reportu.
-            data_headings = [pole.strip() for pole in line.split("|")]
-            data_headings[0] = "Item line in LN" # Prepsani "***" v prvnim sloupci, kde bude pozdeji doplneno poradi linky v cq reportu.
-            break
-    return data_headings
-
-def add_line_id_to_order_plan_data(op_data, op_data_headings): # Pridani ID linky pro jednotlive vrcholy do cq dat jako int na pozici 0 kazde linky. Zvlast resen sklad PZN100 a PZN105.
-    pocet_linek_vrcholu_PZN100 = {}
-    pocet_linek_vrcholu_PZN105 = {}
-    
-    for heading in op_data_headings: # Nalezeni indexu sloupcu skladu a vrcholu v cq importu.
-        if "CLUSTER" in heading.upper() or "WAREHOUSE" in heading.upper():
-            sklad_index = op_data_headings.index(heading)
-        if heading.upper() == "ITEM":
-            vrchol_index = op_data_headings.index(heading)
-    
-    for line in op_data:
-        sklad = line[sklad_index]
-        vrchol = line[vrchol_index]
-
-        # PZN100
-        if sklad.upper() == "PZN100":
-            if vrchol not in pocet_linek_vrcholu_PZN100:
-                pocet_linek_vrcholu_PZN100[vrchol] = 0 
-            line[0] = pocet_linek_vrcholu_PZN100.get(vrchol)+1 # Vlozeni sloupce ID linky pred stavavjici data. (rozsireni dat o jeden sloupec)
-            # print(line)
-            pocet_linek_vrcholu_PZN100[vrchol] +=1
-
-        # PZN105
-        elif sklad.upper() == "PZ5" or sklad.upper() == "PZN105":
-            # print(f"PZN105")
-            if vrchol not in pocet_linek_vrcholu_PZN105:
-                pocet_linek_vrcholu_PZN105[vrchol] = 0 
-            line[0] = pocet_linek_vrcholu_PZN105.get(vrchol)+1
-            pocet_linek_vrcholu_PZN105[vrchol] +=1
-    return op_data
 
 def order_plan_database_pzn100(data, headings): # Vytvoreni dictionary PZN100 jednotlivych itemu s jejich linkamy a daty z reportu.
     database_pzn100_order_plan_dictionary = dict() # Vsechny vrcholy z PZN100 z reportu : jejich linky.
@@ -174,7 +228,7 @@ def order_plan_database_pzn105(data, headings): # Vytvoreni dictionary PZN105 je
                 # K tomuto itemu prida na konec resenou linku jako dalsi zaznam.
                 database_pzn105_order_plan_dictionary[item][len(database_pzn105_order_plan_dictionary[item])+1] = data_dict
                 # print(war_loc_database_dictionary)
-    return database_pzn105_order_plan_dictionary 
+    return database_pzn105_order_plan_dictionary   
 
 def order_plan_database_pzn310(data, headings): # Vytvoreni dictionary PZN310 jednotlivych itemu s jejich linkamy a daty z reportu.
     database_pzn310_order_plan_dictionary = dict() # Vsechny vrcholy z PZN310 z reportu : jejich linky.
@@ -206,8 +260,6 @@ def order_plan_database_pzn310(data, headings): # Vytvoreni dictionary PZN310 je
                 database_pzn310_order_plan_dictionary[item][len(database_pzn310_order_plan_dictionary[item])+1] = data_dict
                 # print(war_loc_database_dictionary)
     return database_pzn310_order_plan_dictionary
-
-# Obsolete analyza funkce:
 
 def obsolete_polozky_database(data, headings): # Vytvoreni dictionary databaze obsolete polozek z reportu.
     obsolete_database_dictionary = dict() # Vsechny vrcholy z reportu a jejich linky priprava dict.
@@ -247,13 +299,9 @@ def obsolete_polozky_database(data, headings): # Vytvoreni dictionary databaze o
             # print(war_loc_database_dictionary)
     return obsolete_database_dictionary
 
-# Prevody analyza funkce:
-
 def warehouse_locations_database(data, headings): # Vytvoreni dictionary warehouse jednotlivych itemu s jejich linkamy a daty z reportu.
     war_loc_database_dictionary = dict() # Vsechny vrcholy z reportu a jejich linky priprava dict.
-    
-    print(headings)
-
+    # print(headings)
     for heading in headings:
         if heading.upper() == "ITEM":
             item_index = headings.index(heading)
@@ -264,15 +312,14 @@ def warehouse_locations_database(data, headings): # Vytvoreni dictionary warehou
         if heading.upper() == "INVENTORY ON HAND":
             ioh_index = headings.index(heading)            
 
-        
     for line in data:  
         # print(f'Line: {line}')
         item = line[item_index]
         compile_line_dict = {} # Jednotlive linky vrcholu z dat
         data_dict = {} # Samotna data na linkach.
         # Sestaveni dat linky pro databazi.
-        for data_field in line:
-            data_dict[headings[line.index(data_field)]] = data_field # Sestaveni dat z linky jako dict s jmeny sloupcu zahlavi reportu jako klic.
+        for i, data_field in enumerate(line):
+            data_dict[headings[i]] = data_field # Sestaveni dat z linky jako dict s jmeny sloupcu zahlavi reportu jako klic.
         compile_line_dict[line[item_line_index]] = data_dict # Sestaveni jednotlivych linek jako dict cislo linky vrcholu : data v lince vyse.
         # print(compile_line_dict)  
 
@@ -443,51 +490,3 @@ def seznam_itemu_pro_order_plany_cq(mp_data, zahlavi_master_planu, do_datumu_pro
                         # Pokud linka splni podminky vyse → item z ni je pridan do setu itemu k provereni.
                         seznam_itemu_pro_order_plany.add(line[item_sloupec_index])    
     return seznam_itemu_pro_order_plany
-
-def data_headings_master_plan(mp_data): # Vytvoreni zahlavi sloupcu z reportu.
-    for line in mp_data:
-        if "***" in line[2:5]: # Identifikator linky se zahlavim z cq reportu.
-            data_headings = [pole.strip() for pole in line.split("|")]
-            data_headings[0] = "Row in Master plan" # Prepsani "***" v prvnim sloupci, kde bude pozdeji doplneno poradi linky v Master plan reportu.
-            data_headings.append("Availability")
-            break
-    return data_headings 
-
-def add_row_number_to_master_plan_data(mp_data): # Pridani poradi linky v Master planu do cq data Master planu.  
-    for row, linka in enumerate(mp_data):
-        linka[0] =  row+1
-    return(mp_data)
-
-def add_availability_master_plan_data(mp_data, mp_data_headings): # Pridani sloupce Availability do cq data Master planu.  
-    
-    for heading in mp_data_headings:
-        if heading.upper() == "INVENTORY ON HAND":
-            inventory_on_hand_index = mp_data_headings.index(heading)
-        elif heading.upper() == "KLIC1":
-            klic1_index = mp_data_headings.index(heading)
-        elif heading.upper() == "ORDERED QTY":
-            ordered_qty_index = mp_data_headings.index(heading)
-
-    item_already_requested_qty_before_current_line = dict()
-
-
-    for line in mp_data:
-        
-        inventory_on_hand = float(line[inventory_on_hand_index].replace(",",""))
-        ordered_qty = float(line[ordered_qty_index].replace(",",""))
-        item = line[klic1_index]
-
-        # pokud jeste ten item nebyl req before, pridej ho do uz requested s ordered qty na lince:
-        if not item_already_requested_qty_before_current_line.get(item):
-            item_already_requested_qty_before_current_line[item] = ordered_qty
-        # Pokud uz tam byl, pricti k te hodnote co uz tam byla ordered qty na lince:
-        else:
-            item_already_requested_qty_before_current_line[item] = item_already_requested_qty_before_current_line.get(item) + ordered_qty
-
-        # Shortage pokud inventory on hand - already requested < 0 , jinak Available.
-        planned_available_po_prodeji_linky = inventory_on_hand - item_already_requested_qty_before_current_line.get(item)
-        if planned_available_po_prodeji_linky < 0:
-            line.append("Shortage")
-        else:
-            line.append("Available")
-    return mp_data

@@ -26,7 +26,9 @@ def run_program():
         
         log_window['state'] = 'normal'
         items_to_order_plans['state'] = 'normal'
-    
+
+        run_btn_text.set("VÝSLEDEK")
+        
         kal_dnu_k_provereni_ode_dneska = int(next_cal_days_to_check.get())
         
         global proverit_do_datumu                
@@ -40,7 +42,7 @@ def run_program():
         global master_plan_data        
         master_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\Master_plan_txt\\Prevody_Sales_order_lines_master_plan.cq")
         log_text_2 = f'• Master plan data načtena . . .\n' 
-        log_window.insert(END, log_text_2)        
+        log_window.insert(END, log_text_2)
 
         # Vytvoreni zahlavi master planu CQ.
         global master_plan_zahlavi
@@ -68,10 +70,6 @@ def run_program():
         log_text_7 = f'• Opraven formát datumu v CQ Master plan datech . . .\n'
         log_window.insert(END, log_text_7)
 
-
-        print(f'1. MASTER PLAN DATA PRIPRAVENA ...')
-        # print(master_plan_data)
-
         ##############################
         # Vytvoreni seznamu itemu z Master planu ke vlozeni do CQ reportu order planu. (Pro jake itemy budeme proverovat order plany.)
         ##############################
@@ -93,10 +91,6 @@ def run_program():
         log_window['state'] = 'disabled'
         items_to_order_plans['state'] = 'disabled'
 
-
-        print(f'2. SEZNAM POLOZEK K PROVERENI VYTVOREN ...')
-        # print(seznam_itemu_pro_order_plany)
-
     elif 3 in stage:
         ##############################
         # Order plany CQ data priprava.
@@ -107,9 +101,7 @@ def run_program():
 
         # Smazani dat jestli nejaka jasou v outputu.
         output.delete(1.0, END)
-
-        run_btn_text.set("CONTINUE")
-
+        
         global order_plan_data
         order_plan_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\Order plan\\order plan 100+105.txt")
         log_text_10 = f'\n• CQ data načtena . . .\n' 
@@ -129,7 +121,7 @@ def run_program():
         # Pridani sloupce dat s ID linky do CQ dat.
         order_plan_data = cq_data.add_line_id_to_order_plan_data(order_plan_data, order_plan_headings)
         log_text_13 = f'• Přidán údaj o ID linky do dat z CQ na první pozici . . .\n' 
-        log_window.insert(END, log_text_13)           
+        log_window.insert(END, log_text_13)            
 
         # Opraveni formatu datumu v CQ datech.
         order_plan_data = cq_data.data_date_formating(order_plan_data, order_plan_headings)
@@ -148,67 +140,6 @@ def run_program():
         log_text_15 = f'• Order pan PZN100 vytvořen . . .\n\n\n'        
         log_window.insert(END, log_text_15)
 
-        stage.pop()
-        stage.append(4)
-
-        log_window['state'] = 'disabled'
-        output['state'] = 'disabled'
-
-        print(f'3. ORDER PLANY VYTVORENY ...')
-        # print(order_plan_pzn_100)
-        # print(order_plan_pzn_105)
-
-    elif 4 in stage:
-        ##############################
-        # Items locations priprava.
-        ##############################
-
-        log_window['state'] = 'normal'
-        output['state'] = 'normal'
-
-        # Smazani dat jestli nejaka jasou v outputu.
-        output.delete(1.0, END)
-
-        global warehouse_locations_data
-        warehouse_locations_data = cq_data.data_import("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Prevody_PZN100_PZN105\\Item warehouse location\\warehouse_locations.txt")
-        log_text_15_1 = f'\n• CQ data načtena . . .\n' 
-        log_window.insert(END, log_text_15_1)
-
-        # Vytvoreni zahlavi z dat z CQ exportu.
-        global warehouse_locations_headings
-        warehouse_locations_headings = cq_data.data_headings_order_plan(warehouse_locations_data)
-        log_text_15_2 = f'• CQ záhlaví připraveno . . .\n' 
-        log_window.insert(END, log_text_15_2)
-        # print(warehouse_locations_headings)
-
-        # Ocisteni CQ dat pro dalsi zpracovani.
-        # print(f'PRED OCISTENIM: {warehouse_locations_data[0]}')
-        warehouse_locations_data = cq_data.import_data_cleaning(warehouse_locations_data)
-        log_text_15_3 = f'• CQ data očištěna . . .\n' 
-        log_window.insert(END, log_text_15_3)
-        # print(f'PO OCISTENI: {warehouse_locations_data[0]}')
-
-        # Pridani sloupce dat s ID linky do CQ dat.
-        warehouse_locations_data = cq_data.add_line_id_to_order_plan_data(warehouse_locations_data, warehouse_locations_headings)
-        log_text_15_4 = f'• Přidán údaj o ID linky do dat z CQ na první pozici . . .\n' 
-        log_window.insert(END, log_text_15_4)
-        # print(f'PO PRIDANI LINKY: {warehouse_locations_data[0]}')   
-
-        # Vytvoreni warehouse locations PZN100.
-        global warehouse_locations
-        warehouse_locations = cq_data.warehouse_locations_database(warehouse_locations_data, warehouse_locations_headings)
-        log_text_15_5 = f'• Warehouse locations vytvořeno . . .\n' 
-        log_window.insert(END, log_text_15_5)
-
-        # print(f'4. LOCATIONS VYTVORENY ...')
-        # print(f'Locations')
-        # for key, value in warehouse_locations.items():
-        #     print(key)
-        #     for line in value:
-        #         print(warehouse_locations.get(key).get(line))
-        
-        print(f'Good until here...1')
-
         ##############################
         # Vystup priprava.
         ##############################
@@ -216,9 +147,7 @@ def run_program():
         global vystup_zahlavi
         vystup_zahlavi = cq_data.zahlavi_vystupu_cq(master_plan_zahlavi)
         log_text_16 = f'• Záhlaví výstupu vytvořeno . . .\n'         
-        log_window.insert(END, log_text_16)   
-
-        print(f'Good until here...2')  
+        log_window.insert(END, log_text_16)        
 
         # Poskladani shortage linek z Master planu.
         global shortage_linky_proverit
@@ -226,28 +155,20 @@ def run_program():
         log_text_17 = f'• Shortage linky vytvořeny . . .\n'         
         log_window.insert(END, log_text_17)         
 
-        print(f'Good until here...3') 
-
         # Doplneni SUM req Qty v dany den.
         excel_data.doplneni_sum_ordered_qty_do_vystupu(shortage_linky_proverit, vystup_zahlavi)
         log_text_18 = f'• Sum of required Qty přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_18)  
 
-        print(f'Good until here...4') 
-
         # Doplneni Planned available na PZN105 na dane PDD linky + vytvoreni seznamu purchase orders , ktere uz se pocitaji do Planned available, ale jeste musi dnes prijit.
-        prevody_dotazy.planned_available_na_skladu_datum(shortage_linky_proverit, order_plan_pzn_105, vystup_zahlavi)
+        prevody_dotazy.planned_available_na_skladu(shortage_linky_proverit, order_plan_pzn_105, vystup_zahlavi)
         log_text_19 = f'• Planned available na PZN105 přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_19)
 
-        print(f'Good until here...5') 
-
         # Doplneni Planned available na PZN100 na dane PDD linky.
-        prevody_dotazy.planned_available_na_skladu_datum(shortage_linky_proverit, order_plan_pzn_100, vystup_zahlavi)
+        prevody_dotazy.planned_available_na_skladu(shortage_linky_proverit, order_plan_pzn_100, vystup_zahlavi)
         log_text_20 = f'• Planned available na PZN100 přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_20) 
-
-        print(f'Good until here...6') 
 
         # Doplneni Already requested in tabulka prevodu PZN105. (Pro verzi bez Excel modulu neni zatim k dispozici)
 
@@ -257,64 +178,44 @@ def run_program():
         log_text_21 = f'• Tabulka prevodu nactena . . .\n'         
         log_window.insert(END, log_text_21)
 
-        print(f'Good until here...7') 
-
         excel_data.doplneni_already_zadano_do_vystupu(sheet1_tabulka_prevodu, shortage_linky_proverit, vystup_zahlavi, 5)
         log_text_22 = f'• lready requested in tabulka prevodu PZN105 pridano do vystupu . . .\n'         
         log_window.insert(END, log_text_22)
-        
-        print(f'Good until here...8') 
 
         ## Pro verzi bez excel modulu nize:
         #for line in shortage_linky_proverit:
         #    line.append("Nelze zjistit bez Excel modulu")
         # log_text_21 = f'• Already requsted v tabulce převodů NEBYLO doplněno . . .\n' 
 
-        print(f'Good until here...9') 
-
         # Doplneni nejblizsiho datumu + Planned available qty, kdy na PZN105 bude Planned available alespon 0.
         prevody_dotazy.next_planned_available_date_not_shortage_sklad(shortage_linky_proverit, order_plan_pzn_105, vystup_zahlavi)
         log_text_23 = f'• Nejbližší Planned available PZN105 alespoň 0 přidáno do výstupu . . .\n'         
-        log_window.insert(END, log_text_23)        
-
-        print(f'Good until here...10') 
+        log_window.insert(END, log_text_23)         
 
         # Doplneni nejblizsiho datumu + Planned available qty, kdy na PZN100 bude Planned available alespon 0.
         prevody_dotazy.next_planned_available_date_not_shortage_sklad(shortage_linky_proverit, order_plan_pzn_100, vystup_zahlavi)
         log_text_24 = f'• Nejbližší Planned available PZN100 alespoň 0 přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_24)  
 
-        print(f'Good until here...11') 
-
         # Doplneni udaje, zda mozno prevest z PZN100 na PZN105 aniz by vznikl shortage na ostatnich linkach order planu PZN100.
         prevody_dotazy.next_planned_available_date_simulate_prevody(shortage_linky_proverit, order_plan_pzn_105, order_plan_pzn_100, vystup_zahlavi)
         log_text_25 = f'• Info zda možno převést přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_25)
-
-        # Doplneni udaje, z jake lokace nechat prevest dily.    
-        prevody_dotazy.location_to_prevest_from(shortage_linky_proverit, warehouse_locations, vystup_zahlavi)
-        log_text_25_5 = f'• Info z jake lokace prevest přidáno do výstupu . . .\n'
-        log_window.insert(END, log_text_25)
-        
-        print(f'Good until here...12') 
 
         # Doplneni zahlavi do seznamu shortage linek k provereni.
         excel_data.doplneni_zahlavi_do_vystupu(shortage_linky_proverit, vystup_zahlavi)
         log_text_26 = f'• Záhlaví přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_26)
 
-        print(f'Good until here...13') 
-
         log_text_27 = f'\n• HOTOVO . . .\n\nVýsledek je třeba zkopírovat do excelu a rozdělit TEXT CO COLUMNS podle zanku "|".\n'         
         log_window.insert(END, log_text_27)        
 
-        print(f'Good until here...14') 
 
         # Vytisteni vystupu po jednotlivych linkach.
         for line in shortage_linky_proverit: # kontrolni TISK
             row_to_print = []
-            for pole in line:  
-                row_to_print.append(str(pole))    
+            for pole in line:     
+                row_to_print.append(str(pole))
             i = 0
             for cislo in row_to_print[8:14]:
                 row_to_print[8+i] = str(cislo).replace(".",",")
