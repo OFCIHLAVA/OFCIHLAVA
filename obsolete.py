@@ -1,10 +1,11 @@
-from funkce.cq_data import data_date_formating, data_import, data_headings,import_data_cleaning, order_plan_database_pzn100, order_plan_database_pzn105, order_plan_database_pzn310, obsolete_polozky_database
+from funkce.cq_data import data_date_formating, data_import, data_headings, generic_database,import_data_cleaning, order_plan_database_pzn100, order_plan_database_pzn105, order_plan_database_pzn310, obsolete_polozky_database
 from funkce.funkce_prace import dotaz_pn_program, nacteni_databaze_boud_pro_dotaz, programy_boud
 from funkce.prevody_dotazy import planned_available_na_skladu, po_in_process_skladu, realny_demand_na_skladu
 
 import datetime
 import sys
 import time
+import openpyxl as excel
 
 
 # Priprava databazi pro dotazovani v jakych boudach je item obsazen.
@@ -22,6 +23,20 @@ print("Databaze programu vsech boud nacetenaa pripravena pro dotazovani . . .\n"
 obsolete_file_import = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Obsolete analýza\\polozky_proverit\\obsolete polozky.txt"
 obsolete_order_plan_import = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Obsolete analýza\\order_plany\\order_plan_100_105_310.txt"
 obsolete_last_transactions_import = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Obsolete analýza\\posledni_transakce\\obselete_last_transaction.txt"
+
+# Nacteni poctu boud z txt souboru vytazeneho z PSR a doplneni informace, jestli jsou nektere linky itemy retired.
+# 
+psr_status_file_import = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\Obsolete analýza\\psr in service status\\boudy_service_status.txt"
+psr_status_data = data_import(psr_status_file_import)
+psr_status_data_headings = data_headings(psr_status_data)
+psr_status_data = import_data_cleaning(psr_status_data)
+
+psr_status_databaze = generic_database(psr_status_data, psr_status_data_headings)
+
+# for bouda, linky in psr_status_databaze.items():
+#     print(bouda)
+#     for cislo, linka in linky.items():
+#         print(cislo, linka,sep=": ")      
 
 ### OBSOLETE POLOZKY
 
@@ -106,12 +121,12 @@ order_plan_310 = order_plan_database_pzn310(obsolete_polozky_order_plan_data, ob
 # A) 105.
 # print(obsolete_polozky_databaze)
 
-input(f'\n\nProgram ready.\nZabere to cca {round(len(obs_polozky_seznam)*0.141)} sekund / {round(len(obs_polozky_seznam)*0.141/60,1)} minut\n\nSpust stiskem ENTER . . .')
+input(f'\n\nProgram ready.\nZabere to cca {round(len(obs_polozky_seznam)*0.1549)} sekund / {round(len(obs_polozky_seznam)*0.1549/60,1)} minut\n\nSpust stiskem ENTER . . .')
 start_time = time.time()
 
-print(f'Item|planned available 105 (pegging)|Last transaction 105|planned available 310 (pegging)|Last transaction 310|Real demand 100 (pegging)|Sum qty already incoming Purchase orders na 100')
+print(f'Item|planned available 105 (pegging)|Last transaction 105|planned available 310 (pegging)|Last transaction 310|Real demand 100 (pegging)|Sum qty already incoming Purchase orders na 100|Obsazeno v boudach|Obsazeno v RETIRED boudach')
 with open("output.txt", "w", encoding="utf-8") as output:
-    output.write(f'Item|planned available 105 (pegging)|Last transaction 105|planned available 310 (pegging)|Last transaction 310|Real demand 100 (pegging)|Sum qty already incoming Purchase orders na 100|Obsazeno v boudach\n')
+    output.write(f'Item|planned available 105 (pegging)|Last transaction 105|planned available 310 (pegging)|Last transaction 310|Real demand 100 (pegging)|Sum qty already incoming Purchase orders na 100|Obsazeno v boudach|Obsazeno v RETIRED boudach\n')
 # 1. Projiti databaze vsech obsolete polozek na 105 a 310:
 for item, sklady in obsolete_polozky_databaze.items():    
     # print(item)
@@ -139,6 +154,8 @@ for item, sklady in obsolete_polozky_databaze.items():
     transaction_date_310 = datetime.date(1,1,1)
 
     v_boudach = "reset hodnota"
+
+    v_retired_boudach = "reset hodnota"
 
 
     # Prochazeni 105 a 310 op na planned available.
@@ -301,6 +318,17 @@ for item, sklady in obsolete_polozky_databaze.items():
     v_boudach = v_boudach[1]
     v_boudach = [bouda_program.split("(")[0] for bouda_program in v_boudach]
     v_boudach = set(v_boudach)
+    
+    # Projiti databaze psr status databaze, jestli nektere z boud, ve kterych se nachazi jsou retired.
+    
+    v_retired_boudach = list()
+    for bouda in v_boudach:
+        if bouda in psr_status_databaze:
+            for linka in psr_status_databaze.get(bouda):
+                status = psr_status_databaze.get(bouda).get(linka).get("Status")
+                if "RETIRED" in status.upper():
+                    v_retired_boudach.append(bouda)    
+    
     # tisk dat
 
     if type(pole_105_pa) == float:
@@ -314,15 +342,19 @@ for item, sklady in obsolete_polozky_databaze.items():
     if len(v_boudach) == 0:
         v_boudach = "Neni v zadnem kusovniku v databazi"
     else:
-        v_boudach = ",".join(v_boudach)     
+        v_boudach = ",".join(v_boudach)
+
+    if len(v_retired_boudach) == 0:
+        v_retired_boudach = "PN Neni v zadne retired boude."        
+    else:
+        v_retired_boudach = ",".join(v_retired_boudach)
 
 
 
-
-    print(f'{item}|{pole_105_pa}|{pole_105_last_t}|{pole_310_pa}|{pole_310_last_t}|{pole_100_real_demand}|{pole_100_pur_o_in_process}|{v_boudach}')
+    print(f'{item}|{pole_105_pa}|{pole_105_last_t}|{pole_310_pa}|{pole_310_last_t}|{pole_100_real_demand}|{pole_100_pur_o_in_process}|{v_boudach}|{v_retired_boudach}')
 
     with open("output.txt", "a", encoding="utf-8") as output:
-        output.write(f'{item}|{pole_105_pa}|{pole_105_last_t}|{pole_310_pa}|{pole_310_last_t}|{pole_100_real_demand}|{pole_100_pur_o_in_process}|{v_boudach}')
+        output.write(f'{item}|{pole_105_pa}|{pole_105_last_t}|{pole_310_pa}|{pole_310_last_t}|{pole_100_real_demand}|{pole_100_pur_o_in_process}|{v_boudach}|{v_retired_boudach}')
         output.write('\n')
 
 print("\n\n--- %s seconds ---" % (time.time() - start_time))
