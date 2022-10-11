@@ -112,6 +112,7 @@ def planned_available_na_skladu_datum(shortage_linky, order_plan_skladu, zahlavi
 def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_skladu, zahlavi_vystupu):# Doplneni nejblizsiho datumu + PA, kdy bude Planned Available na skladu pro dany item v lince alespon 0 nebo vyssi.
 
     for line in shortage_linky:
+        # print(f'PRED next planed not shortage\n {str(order_plan_skladu)}\n line:\n {line})')
         vrchol = line[zahlavi_vystupu.index("Item")]
         if vrchol == "Item": # Neresit linku zahlavi.
             continue
@@ -127,7 +128,7 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
         if order_plan_skladu.get(vrchol) != None:            
             vrchol_available_qty_sklad = 0
             for linka in range(1,len(order_plan_skladu.get(vrchol))+1):
-                # print(vrchol, linka, len(order_plan_skladu.get(vrchol)))
+                
                 order_type = order_plan_skladu.get(vrchol).get(linka).get("Order type txt")
                 if order_type.upper() == "PLANNED PURCHASE ORDER":
                     if len(order_plan_skladu.get(vrchol)) > 1:
@@ -145,7 +146,7 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
                     vrchol_available_qty_sklad -= quantity
                 else:
                     print('POZOR - ERROR v +/- balance na u itemu {vrchol} na lince {linka}.')            
-                
+                # print(vrchol, linka, len(order_plan_skladu.get(vrchol)), vrchol_available_qty_sklad)
                 # Moznosti vysledku:
                 # 1. Pokud pouze stock → ok.
                 if order_type.upper() == "STOCK" and len(order_plan_skladu.get(vrchol)) == 1:
@@ -157,6 +158,7 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
                     break                
                 # 3. Pokud jsem prosel vsechny linky a nespustila se zadna z podminek vyse.
                 elif linka == len(order_plan_skladu.get(vrchol)):
+                    # print(f'TUDY')
                     # Pokud Planned available na posledni lince >= 0.
                     if vrchol_available_qty_sklad >= 0:
                         # a) Pokud datum posledni linky je pred PDD, ale je az po dnesnim datu → datum posledni linky.
@@ -171,11 +173,12 @@ def next_planned_available_date_not_shortage_sklad(shortage_linky, order_plan_sk
                         else:                        
                             line.append(f'{datum.strftime("%d/%m/%Y").replace("/",".")}, PA Qty: {vrchol_available_qty_sklad}')
                             break
-                    else:
-                        line.append(f'Neexistuje')
-                        break                       
+            else:
+                line.append(f'Neexistuje')
+
         else:
             line.append(f'No data.')   
+        # print(f'PO next planed not shortage\n {str(order_plan_skladu)}\n line:\n {line})')
 
 def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skladu_kam_chchi_prevadet, order_plan_skladu_odkud_chchi_prevadet, zahlavi_vystupu):
 
@@ -183,6 +186,7 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
     uz_simulovano_prevod = dict()
 
     for line in shortage_linky:
+        # print(f'LINKA PRED mozno prevest?:\n {line}')
         vrchol = line[zahlavi_vystupu.index("Item")]
         if vrchol == "Item":
             continue  
@@ -218,6 +222,7 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
         # print(f'PA na 100 na PDD: {sum_planned_available_odkud_prevadim}')
         ### 2. Podivej se, jestli je alespon tolik, kolik bych potreboval prevest k dispozici na sklade, odkud prevadim v PDD.
         if sum_planned_available_kam_prevadim + sum_planned_available_odkud_prevadim < 0: ### 2a] Pokud neni, nelze prevadet. → preskocit na dalsi linku.
+            # print(f'GUGU')
             #print(f'Nelze prevest, na druhem skladu neni dostatecne mnozstvi.\n')
             line.append("Nelze, na druhem skladu neni dostatecne mnozstvi.")
             continue        
@@ -268,6 +273,7 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
                         ### Planned purchase orders se nepocitaji. → preskocit na dalsi linku order planu.
                         if order_type.upper() == "PLANNED PURCHASE ORDER":
                             order_type = ""
+                            print(f'HOHO')
                             continue                   
                         balance = order_plan_skladu_odkud_chchi_prevadet.get(vrchol).get(linka).get("Transaction type txt")
                         # print(f'pohyb: {balance}.')
@@ -323,10 +329,13 @@ def next_planned_available_date_simulate_prevody(shortage_linky, order_plan_skla
                     # print(f'Nelze prevest! {vrchol} {sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane} Qty na {pdd_linky}. Linky v op100 {shortage_linky_pri_prevodu} by se dostaly do minusu.')
                     ### Pripojeni vyslednu na konec linky.
                     line.append(f'Nelze! {vrchol} {abs(sum_planned_available_kam_prevadim_opraveno_o_uz_simulovane)} Qty na {pdd_linky}. Linky v op100 {shortage_linky_pri_prevodu} by se dostaly do minusu.')
+        # print(f'LINKA PO mozno prevest?:\n {line}')
 
 def location_to_prevest_from(shortage_linky, warehouse_locations, zahlavi_vystupu): # Doplneni sloupce s informaci, z jake lokace nechat dil prevest.
     # print(zahlavi_vystupu)
-    
+    # 
+    # print(f'2. KROK\n\n')
+
     for line in shortage_linky:
         # print(f'Linka PRED: {line}')
         # print(f'len line {len(line)}')

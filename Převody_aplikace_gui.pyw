@@ -272,17 +272,24 @@ def run_program():
 
         print(f'Good until here...9') 
 
+
+        # print(f'PRED Doplneno 105 pa aspon 0 {shortage_linky_proverit}')
         # Doplneni nejblizsiho datumu + Planned available qty, kdy na PZN105 bude Planned available alespon 0.
         prevody_dotazy.next_planned_available_date_not_shortage_sklad(shortage_linky_proverit, order_plan_pzn_105, vystup_zahlavi)
         log_text_23 = f'• Nejbližší Planned available PZN105 alespoň 0 přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_23)        
+        # print(f'PO Doplneno 105 pa aspon 0 {shortage_linky_proverit}')
+
 
         print(f'Good until here...10') 
 
+        # print(f'PRED Doplneno 100 pa aspon 0 {shortage_linky_proverit}')
         # Doplneni nejblizsiho datumu + Planned available qty, kdy na PZN100 bude Planned available alespon 0.
         prevody_dotazy.next_planned_available_date_not_shortage_sklad(shortage_linky_proverit, order_plan_pzn_100, vystup_zahlavi)
         log_text_24 = f'• Nejbližší Planned available PZN100 alespoň 0 přidáno do výstupu . . .\n'         
         log_window.insert(END, log_text_24)  
+        # print(f'PO Doplneno 100 pa aspon 0 {shortage_linky_proverit}')
+
 
         print(f'Good until here...11') 
 
@@ -294,7 +301,7 @@ def run_program():
         # Doplneni udaje, z jake lokace nechat prevest dily.    
         prevody_dotazy.location_to_prevest_from(shortage_linky_proverit, warehouse_locations, vystup_zahlavi)
         log_text_25_5 = f'• Info z jake lokace prevest přidáno do výstupu . . .\n'
-        log_window.insert(END, log_text_25)
+        log_window.insert(END, log_text_25_5)
         
         print(f'Good until here...12') 
 
