@@ -140,31 +140,31 @@ def data_date_formating(data, data_headings): # Prevedeni pole datumu na date fo
             line[datum_index] = datum
     return data
 
-def generic_database(data, headings): # Vytvoreni dictionary databaze jednotlivych itemu s jejich linkamy a daty z reportu.
+def generic_database(data, headings, primary_key): # Vytvoreni dictionary databaze jednotlivych itemu s jejich linkamy a daty z reportu.
     database_dictionary = dict() # Vsechny vrcholy z reportu a jejich linky priprava dict.
     
     for heading in headings:
-        if heading.upper() == "ITEM":
-            item_index = headings.index(heading) 
+        if heading.upper() == str(primary_key).upper():
+            pk_index = headings.index(heading) 
 
     for line in data:  
-        item = line[item_index]
+        key = line[pk_index]
         compile_line_dict = {} # Jednotlive linky vrcholu z dat
         data_dict = {} # Samotna data na linkach.
         # Sestaveni dat linky pro databazi.
         for i, data_field in enumerate(line):
             data_dict[headings[i]] = data_field # Sestaveni dat z linky jako dict s jmeny sloupcu zahlavi reportu jako klic.
         # print(f'Item: {item}')
-        if item not in database_dictionary:# Pokud item jeste neni v databazi → vytvori ho tam s touto prvni linkou.
+        if key not in database_dictionary:# Pokud item jeste neni v databazi → vytvori ho tam s touto prvni linkou.
             compile_line_dict[1] = data_dict # Sestaveni jednotlivych linek jako dict cislo linky vrcholu : data v lince vyse.
             # print(compile_line_dict)             
             # print(f'Neni tam zatim.')
-            database_dictionary[item] = compile_line_dict # Sestaveni linek predchoziho vrcholu jako dict vrchol : jeho linky s daty viz. vyse.
+            database_dictionary[key] = compile_line_dict # Sestaveni linek predchoziho vrcholu jako dict vrchol : jeho linky s daty viz. vyse.
             # print(war_loc_database_dictionary)
         else:# Pokud item uz je v databazi..
             # print(f'Uz tam je.')
             # Pokud pridavana lokace tam jeste neni → prodat samostatnou linku.
-            database_dictionary[item][len(database_dictionary[item])+1] = data_dict
+            database_dictionary[key][len(database_dictionary[key])+1] = data_dict
             # print(war_loc_database_dictionary)
     return database_dictionary
 
