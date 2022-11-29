@@ -84,22 +84,49 @@ def dotaz_pn_program(pn, databaze, programy):  # 3b) Projde kusovnik vsech bud a
         if dotaz in pn_list:
             program = programy.get(vrchol)
             obsazeno_v_boudach.append(f'{vrchol}({program})')
-            if program not in vysledne_programy:
+            if program not in vysledne_programy and program != None:
                 vysledne_programy.append(program)
             #print(vrchol)
             #print(program)
-    if "MIX" in vysledne_programy or ("BFE" in vysledne_programy and "SFE" in vysledne_programy):
-        # print("je to MIX")
-        # print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
-        return [f'{dotaz}:MIX', obsazeno_v_boudach]
-    elif "BFE" in vysledne_programy and "SFE" not in vysledne_programy:
-        # print("je to BFE")
-        # print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
-        return [f'{dotaz}:BFE', obsazeno_v_boudach]
-    elif "SFE" in vysledne_programy and "BFE" not in vysledne_programy:
-        # print("je to SFE")
-        # print("pn obsazeno v boudach: \n" + str(obsazeno_v_boudach))
-        return [f'{dotaz}:SFE', obsazeno_v_boudach]
+
+    # A) Zjisteni vysledne SG z kombinace programu.  
+    print(vysledne_programy)
+    sfe = False
+    bfe = False
+    mix = False
+    
+    for program in vysledne_programy:
+        print(program)
+        if "SFE" in program:
+            sfe = True
+        if "BFE" in program:
+            bfe = True
+        if "MIX" in program:
+            mix = True
+    # B) Doplnkove zjisteni, jestli to je "specialni" polozka.  
+    specialni_polozky = ""
+    for program in vysledne_programy:
+        if "AFDAL" in program:
+            specialni_polozky += "(AFDAL)"
+        if "AB MILITARI" in program:
+            specialni_polozky += "(AB MILITARI)"
+        if "DELTA LDMCR" in program:
+            specialni_polozky += "(DELTA LDMCR)"
+
+
+    # Vysledek
+
+    # MIX polozky
+    if mix or (bfe and sfe):    
+        return [f'{dotaz}:MIX{specialni_polozky}', obsazeno_v_boudach] 
+    # BFE polozky
+    elif bfe and not sfe:
+        return [f'{dotaz}:BFE{specialni_polozky}', obsazeno_v_boudach]
+    # SFE polozky
+    elif sfe and not bfe:
+        return [f'{dotaz}:SFE{specialni_polozky}', obsazeno_v_boudach]
+    # Nezname polozky
     else:
         # print(dotaz + "--- U tohoto pn neumim urcit - bud neznam toto pn, nebo nemam v databazi boudu, ve ktere je. Sorry :-( \n")
         return [f'{dotaz}:N/A', obsazeno_v_boudach]
+    
