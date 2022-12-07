@@ -1,0 +1,473 @@
+import sys
+
+def data_import(cq_export_cesta): # Nacteni dat z CQ reportu.
+    with open(cq_export_cesta,'r', encoding='Windows-1250') as input_file:
+        data = input_file.readlines()
+        input_file.close()
+    return data
+
+def data_headings(data): # Vytvoreni zahlavi sloupcu z reportu.
+    data_headings = [pole.strip() for pole in data[0].split("\t")]
+    return data_headings  
+
+def import_data_cleaning(data): # Ocisteni dat a nahrazeni prazdnych poli za "0".
+    cl_data = list()    
+    for line in data: # Ocisteni dat a 
+        linka = [pole.strip() for pole in line.split("\t")] # Ocisteni dat.
+        # print(linka)
+        for i, pole in enumerate(linka): # nahrazeni praydnych poli za "NULL hodnotu".
+            if len(pole) == 0 or pole == "-":
+                linka[i] = "NULL"
+        # smazani prvniho pole(vznikne s hodnotou 0 pri rozdeleni linky).
+        cl_data.append(linka)
+        data = cl_data
+    return data
+
+def vsb_bom_database(data, headings): # Vytvoreni dictionary databaze jednotlivych itemu s jejich linkamy a daty z reportu.
+    vsb_dictionary = dict() # Vsechny vrcholy z reportu a jejich linky priprava dict.
+    
+    for heading in headings:
+        if heading.upper() == "VSB NR.":
+            vsb_index = headings.index(heading)
+        if heading.upper() == "TYPE FWD/AFT":
+            vsb_type_index = headings.index(heading)
+        if heading.upper() == "MONUMENT ROOT IDS":
+            m_root_ids_index = headings.index(heading)
+        if heading.upper() == "MONUMENTY CLASS":
+            m_class_index = headings.index(heading)
+        if heading.upper() == "SPECIFIC MONUMENT IDS":
+            m_ids_index = headings.index(heading)
+        if heading.upper() == "PART NUMBER":
+            required_material_pn_index = headings.index(heading)
+        if heading.upper() == "QUANTITY":
+            quantity_index = headings.index(heading)
+        if heading.upper() == "DESCRIPTION":
+            description_index = headings.index(heading)
+        if heading.upper() == "NOTE":
+            note_index = headings.index(heading)
+
+    for line in data:  
+        vsb = line[vsb_index]
+        vsb_type = line[vsb_type_index]
+        root_ids = [root_id.strip() for root_id in line[m_root_ids_index].split(",")]
+        monument_class = line[m_class_index]
+        specific_monument_ids = [spec_m_id.strip() for spec_m_id in line[m_ids_index].split(",")]
+        if "NULL" in specific_monument_ids:
+            specific_monument_ids.remove("NULL")
+            specific_monument_ids.append("ALL part numbers")
+        required_material_pn = line[required_material_pn_index]
+        quantity = line[quantity_index]
+        description = line[description_index]
+        note = line[note_index]
+        
+        # Pokud se dane VSB jeste neresilo → vse na teto lince se prida (jedna se o novy zaznam pod timto VSB)  
+        if vsb not in vsb_dictionary:
+            vsb_dictionary[vsb] = dict()
+            vsb_dictionary[vsb]["vsb type"] = vsb_type
+            vsb_dictionary[vsb]["root ids"] = dict()
+
+            for root_id in root_ids:
+                vsb_dictionary[vsb]["root ids"][root_id] = dict()
+                vsb_dictionary[vsb]["root ids"][root_id]["Monument type"] = monument_class
+                vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"] = dict()
+                # Pod kazdym root id zalozi specific ID, pokud patri k sobe.
+                for specific_monument_id in specific_monument_ids:                    
+                    if root_id in specific_monument_id or specific_monument_id == "ALL part numbers":
+                        vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id] = dict()
+                        vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"] = dict()
+                        vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn] = dict()
+                        vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["quantity"] = quantity
+                        vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["description"] = description
+                        vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["note"] = note
+        else:
+        # Jinak, pokud uz dane VSB v databazi je, proverit, jestli jsou tam root ids boud z resene linky.
+            for root_id in root_ids:
+                # Pokud se dane root id jeste pod timto VSB neresilo → vse na teto lince pridat (jedna se o novy zaznam pod timto root id)
+                if root_id not in vsb_dictionary[vsb]["root ids"]:
+                    vsb_dictionary[vsb]["root ids"][root_id] = dict()
+                    vsb_dictionary[vsb]["root ids"][root_id]["Monument type"] = monument_class
+                    # Pod kazdym root id zalozi specific ID, pokud patri k sobe.
+                    for specific_monument_id in specific_monument_ids:                    
+                        if root_id in specific_monument_id or specific_monument_id == "ALL part numbers":
+                            vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"] = dict()
+                            vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id] = dict()
+                            vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"] = dict()
+                            vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn] = dict()
+                            vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["quantity"] = quantity
+                            vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["description"] = description
+                            vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["note"] = note                
+                # Pokud se dane root id pod timto VSB uz resilo → podivat se, jestli se vsechny specific monument id z teto linky uz resily pod danym root id.
+                else:                    
+                    for specific_monument_id in specific_monument_ids:                    
+                        if root_id in specific_monument_id or specific_monument_id == "ALL part numbers":                    
+                            # Pro kazdy specific monument id z teto linky se podivat, jestli se pod timto root id jeste neresil → vse na teto lince pridat (jedna se o novy zaznam pod timto specific id monumentem)
+                            if specific_monument_id not in vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"]:
+                                vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id] = dict()
+                                vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"] = dict()
+                                vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn] = dict()
+                                vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["quantity"] = quantity
+                                vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["description"] = description
+                                vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["note"] = note
+                            # Pokud se reseny specific monument id z teto linky pod timto root id uz resil → podivat se, jestli se required part number teto linky uz resil pod danym specific id.
+                            else:
+                            # Pokud se required material pod timto specific id monumentem jeste neresil → pridat ho (jedna se o novy zaznam pod timto specific id monumentem)
+                                if required_material_pn not in vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"]:
+                                    vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn] = dict()
+                                    vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["quantity"] = quantity
+                                    vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["description"] = description
+                                    vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["note"] = note
+                                else:
+                                # Pokud se required material pod timto specific id monumentem uz resil → pricist mnozstvi marerialu na resene lince k mnozstvi, ktere uz tam je.
+                                    qty_now = vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["quantity"]
+                                    qty_to_add = quantity
+                                    new_qty = str(float(qty_now) + float(qty_to_add))
+                                    vsb_dictionary[vsb]["root ids"][root_id]["Specific Monument IDs"][specific_monument_id]["material"][required_material_pn]["quantity"] = new_qty
+    return vsb_dictionary
+
+def print_vsb_bom(vsb_databaze):
+    for vsb, vsb_data in vsb_databaze.items():
+        print(f'\nVSB: {vsb}, Typ: {vsb_data["vsb type"]}')
+        root_ids = vsb_data["root ids"]
+        print(f'\n    Monument root numbers included in VSB:')
+        for root_id, root_id_data in root_ids.items():
+            print(f'    {root_id}, Galley type: {root_id_data["Monument type"]}')
+            specific_monuments = root_id_data["Specific Monument IDs"]
+            for monument, bom_data in specific_monuments.items():
+                print(f'\n        Specific Galley part numbers:')
+                print(f'        {monument}')
+                print(f'\n            Seznam required materialu, jeho qty pro danou Galley a poznamka:')
+                for material, dily in bom_data.items():              
+                    for dil, qty_desc_note in dily.items():
+                        if qty_desc_note["note"] == "NULL":
+                            note = "-"
+                        else:
+                            note = qty_desc_note["note"]   
+                        print(f'            P/N: {dil}, Name: {qty_desc_note["description"]} Qty: {qty_desc_note["quantity"]}, Note: {note}')
+
+def consumables_vsb_database(data, headings): # Vytvoreni dictionary databaze jednotlivych itemu s jejich linkamy a daty z reportu.
+    consumables_dictionary = dict() # Vsechny vrcholy z reportu a jejich linky priprava dict.
+    cd = consumables_dictionary
+    
+    for heading in headings:
+        if heading.upper() == "VSB NR.":
+            vsb_index = headings.index(heading)
+        if heading.upper() == "MONUMENTY CLASS":
+            m_classes_index = headings.index(heading)
+        if heading.upper() == "PART NUMBER":
+            required_material_pn_index = headings.index(heading)
+        if heading.upper() == "QUANTITY":
+            quantity_index = headings.index(heading)
+        if heading.upper() == "DESCRIPTION":
+            description_index = headings.index(heading)
+        if heading.upper() == "NOTE":
+            note_index = headings.index(heading)
+
+    for line in data:  
+        vsb = line[vsb_index]
+        monument_classes = [m_class.strip() for m_class in line[m_classes_index].split(",")]
+        required_material_pn = line[required_material_pn_index]
+        quantity = line[quantity_index]
+        description = line[description_index]
+        note = line[note_index]
+        
+        # Pokud se dane VSB jeste neresilo → vse na teto lince se prida (jedna se o novy zaznam pod timto VSB)  
+        if vsb not in cd:
+            cd[vsb] = dict()
+            cd[vsb]["monument classes"] = dict()
+
+            for m_class in monument_classes:
+                cd[vsb]["monument classes"][m_class] = dict()
+                cd[vsb]["monument classes"][m_class]["material"] = dict()
+                cd[vsb]["monument classes"][m_class]["material"][required_material_pn] = dict()
+                cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["description"] = description
+                cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["quantity"] = quantity
+                cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["note"] = note
+        else:
+        # Jinak, pokud uz dane VSB v databazi je, proverit, jestli jsou tam vsechny monument classes z resene linky.
+            for m_class in monument_classes:
+                # Pokud se dana monument classa jeste pod timto VSB neresila → vse na teto lince pridat (jedna se o novy zaznam pod touto classou)
+                if m_class not in cd[vsb]["monument classes"]:
+                    cd[vsb]["monument classes"][m_class] = dict()
+                    cd[vsb]["monument classes"][m_class]["material"] = dict()
+                    cd[vsb]["monument classes"][m_class]["material"][required_material_pn] = dict()
+                    cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["description"] = description
+                    cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["quantity"] = quantity
+                    cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["note"] = note              
+                # Pokud se dana monument classa pod timto VSB uz resila → podivat se, jestli se material z teto linky uz resil pod danou classou.
+                else:                                                  
+                    # Pokud se required material pod danou monument classou jeste neresil → vse na teto lince se prida (jedna se o novy zaznam pod touto classou)
+                    if required_material_pn not in cd[vsb]["monument classes"][m_class]["material"]:
+                        cd[vsb]["monument classes"][m_class]["material"][required_material_pn] = dict()
+                        cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["description"] = description
+                        cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["quantity"] = quantity
+                        cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["note"] = note 
+                        # Pokud se reseny specific monument id z teto linky pod timto root id uz resil → podivat se, jestli se required part number teto linky uz resil pod danym specific id.
+                    else:
+                    # Pokud se required material pod danou monument classou uz resil → pricist mnozstvi marerialu na resene lince k mnozstvi, ktere uz tam je.
+                        qty_now = cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["quantity"]
+                        qty_to_add = quantity
+                        new_qty = str(float(qty_now) + float(qty_to_add))
+                        cd[vsb]["monument classes"][m_class]["material"][required_material_pn]["quantity"] = new_qty
+    consumables_dictionary = cd
+    return consumables_dictionary
+
+def print_vsb_consumables(consumables_databaze):
+    for vsb, vsb_data in consumables_databaze.items():
+        print(f'\nVSB: {vsb}')
+        print(f'\n    Monument clasess included in VSB:')
+        for data_name, data in vsb_data.items():
+            if data_name == "monument classes":
+                for m_class, m_class_data in data.items():
+                    print(f'\n    {m_class}')
+                    for data_name, data in m_class_data.items():
+                        if data_name == "material":
+                            print(f'      Seznam required materialu, jeho qty pro danou Galley class a poznamka:\n')
+                            for part_number, pn_data in data.items():
+                                # print(part_number)
+                                # print(pn_data)
+                                if pn_data["note"] == "NULL":
+                                    note = "-"
+                                else:
+                                   note = pn_data["note"]
+                                print(f'          {part_number}, Description: {pn_data["description"]}, Quantity: {pn_data["quantity"]}, Note: {note}')
+
+def edes_delaminace_database(data, headings): # Vytvoreni dictionary databaze jednotlivych itemu s jejich linkamy a daty z reportu.
+    edes_delaminace_dictionary = dict() # Vsechny vrcholy z reportu a jejich linky priprava dict.
+    edd = edes_delaminace_dictionary
+    
+    for heading in headings:
+        if heading.upper() == "VERSION":
+            version_index = headings.index(heading)
+        if heading.upper() == "PRE CHANGE P/N":
+            pre_change_pn_index = headings.index(heading)
+        if heading.upper() == "PRE CHANGE S/N":
+            pre_change_sns_index = headings.index(heading)
+
+    for line in data:  
+
+        version = line[version_index]
+        pre_change_pn = line[pre_change_pn_index]
+        pre_change_sns = [sn.strip() for sn in line[pre_change_sns_index].split(',')]
+        
+        # Pokud se dana verze jeste neresila → vse na teto lince se prida (jedna se o novy zaznam pod timto VSB)  
+        if version not in edd:
+            edd[version] = dict()
+            edd[version][pre_change_pn] = dict()
+            edd[version][pre_change_pn]["SN"] = sorted(sorted(pre_change_sns), key=len)
+
+        # Jinak, pokud dana verze v databazi uz je, proverit, jestli je tam PN boudy z resene linky.
+        else:        
+            # Pokud se dany PN boudy verze jeste neresil → vse na teto lince se prida (jedna se o novy zaznam pod timto VSB)
+            if pre_change_pn not in edd[version]:
+                edd[version][pre_change_pn] = dict()
+                edd[version][pre_change_pn]["SN"] = sorted(sorted(pre_change_sns), key=len)
+            # Pokud se dany PN boudy pod touto verzi uz resil → podivat se, jestli se vsechny SN z teto linky uz resily pod danou boudou.
+            # Ty co se jeste pod danou boudou neresily → pridat pod danou boudu pod danou verzi
+            else:                                                  
+                sns = edd[version][pre_change_pn]["SN"]
+                sns_pridat = [sn for sn in pre_change_sns if sn not in edd[version][pre_change_pn]["SN"]]
+                sns.extend(sns_pridat)
+                edd[version][pre_change_pn]["SN"] = sorted(sorted(sns), key=len)
+
+    edes_delaminace_dictionary = edd
+    return edes_delaminace_dictionary
+         
+def print_edes_delaminace_database(edes_databaze):
+    for verze, monumenty_sn in edes_databaze.items():
+        print(f'\nVerze: {verze}')
+        print(f'    Pocet monumentu: {len(monumenty_sn)}')
+        print(f'    Monumety in Verze:')
+        for monument, sn in monumenty_sn.items():
+            if "All SN" in monumenty_sn[monument]["SN"]:
+                print(f'        {monument}, Pocet SN: TBD')
+            else:
+                print(f'        {monument}, Pocet SN: {len(monumenty_sn[monument]["SN"])}')
+            
+            print(f'        SN: {",".join(monumenty_sn[monument]["SN"])}\n')
+
+
+##### BEH PROGRAMU #####
+
+### DATA soubory
+vsb_bom_file = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\11_Retrofity\\Delaminace\\Pocitadlo materialu pro zakazniky\\vsb bomy.txt"
+consumables_materials_file = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\11_Retrofity\\Delaminace\\Pocitadlo materialu pro zakazniky\\Consumables 601800-25-018.txt"
+edes_data_file = "Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\11_Retrofity\\Delaminace\\Pocitadlo materialu pro zakazniky\\edes data.txt"
+
+### Import a priprava dat
+## BOM
+vsb_bom_data = data_import(vsb_bom_file)
+vsb_bom_zahlavi = data_headings(vsb_bom_data)
+vsb_bom_data_no_headings = import_data_cleaning(vsb_bom_data[1:])
+# print(vsb_bom_zahlavi)
+# for line in vsb_bom_data_no_headings:
+#     print(line)
+
+## consumables
+consumables_data = data_import(consumables_materials_file)
+consumables_zahlavi = data_headings(consumables_data)
+consumables_data_no_heading = import_data_cleaning(consumables_data[1:])
+# print(consumables_zahlavi)
+
+# EDES data
+edes_data = data_import(edes_data_file)
+edes_data_zahlavi = data_headings(edes_data)
+edes_data_no_heading = import_data_cleaning(edes_data[1:])
+# print(f'Edes zahlavi: {edes_data_zahlavi}')
+# for line in edes_data_no_heading:
+#     print(line)
+
+
+### Priprava databazi
+## VSB BOM databaze
+vsb_databaze = vsb_bom_database(vsb_bom_data_no_headings, vsb_bom_zahlavi)    
+# tisk struktury databaze
+#print_vsb_bom(vsb_databaze)
+
+## Sportebni material databaze
+consumables_databaze = consumables_vsb_database(consumables_data_no_heading, consumables_zahlavi)
+# tisk struktury databaze
+# print_vsb_consumables(consumables_databaze)
+# print(consumables_databaze)
+
+## EDES delaminace database
+edes_databaze = edes_delaminace_database(edes_data_no_heading, edes_data_zahlavi)
+# tisk struktury databaze
+# print_edes_delaminace_database(edes_databaze)
+
+### DOTAZY na databaze
+
+# Soucet materialu, ktery by mela ktera verze potrebovat.
+# 1. prijmout input verze od usera
+hledana_verze = input(f'Zadej hledanou verzi: ').strip()
+print(f'Hledana verze: {hledana_verze}')
+
+
+# Vyhledavadlo sumy 
+# 2. Prohledat EDES databazi a najit vsechny unikatni boudy pod danou verzi + Pro kazdou takovou boudu najit pocet jejich SN.
+
+# List ukladanych linek, ktere pak pujdou do vystutpu
+verze_output_list = []
+# Vlozeni zahlavi do vysledku
+verze_output_list.append(['Verze','P/N monumentu','Typ monumentu','SN','VSB','Material P/N','Description','Quantity per 1 monument','Quantity for all SN','Note'])
+
+# Pokud zadana verze neni v databazi vratit info, ze zadana verze tu neni.
+if hledana_verze not in edes_databaze:
+    print(f'Zadanou verzi: {hledana_verze} nemam v databazi. Ukoncuji program.')
+    sys.exit()
+
+for verze, monumenty_sn in edes_databaze.items():
+    
+    if verze == hledana_verze:
+        print(f'Hledana verze {hledana_verze} je v EDES databazi:')            
+        print(f'\nVerze: {verze}')
+        print(f'    Pocet monumentu: {len(monumenty_sn)}')
+        print(f'    Monumety in Verze:')
+        for monument, sn in monumenty_sn.items():
+            print(f'    {monument}')
+        for monument, sn in monumenty_sn.items():
+            # print(f'Seznam dilu pro monument {monument}:')
+            root_monument = monument[0:6]
+            all_sn_str = ",".join(monumenty_sn[monument]["SN"])
+            if "All SN" in monumenty_sn[monument]["SN"]:
+                count_sn = -1 # Podchyceni all sn pripadu.
+            else:            
+                count_sn = len(monumenty_sn[monument]["SN"])
+            # 3. Pro kazdou najitou boudu vyzit jeji koren(6 cisel) a zkusit vyhledat koren v BOM databazi, jestli tam na to je seznam materialu.
+            for vsb, vsb_data in vsb_databaze.items():
+                root_ids = vsb_data["root ids"]
+                if root_monument not in root_ids:
+                # 3a.   Pokud NE →      • Tato bouda jeste nema pro resene VSB zadny seznam materialu → vratit info, ze neni BOM material pro danou boudu 
+                    # print(f'Pro VSB {vsb}, pro koren {root_monument} boudy {monument} nemam zadna data potrebneho materialu. Preskakuji.')
+                    continue
+                # 3b.   Pokud ANO →
+                root_id_data = vsb_data["root ids"][root_monument]
+                # • Pro dany kmen boudy v databazi BOMu jeste dohledat TYP boudy. (G1.2...)
+                monument_type = vsb_data["root ids"][root_monument]["Monument type"]
+                # • Pro dany kmen boudy v databazi BOMu jeste dohledat TYP boudy. (G1.2...)
+                # print(f'    Koren monumentu {monument} je ve VSB BOM databazi.')
+                # • vzit vsechen material pod danym korenem a priradit ho boude.
+                if "ALL part numbers" in root_id_data["Specific Monument IDs"]:
+                    monument_generall_material_dict = root_id_data["Specific Monument IDs"]["ALL part numbers"]["material"]
+                    print(f'\n    Seznam spolecneho materialu pro koren teto boudy {monument}, typ {monument_type} pro VSB {vsb}:\n')
+                    print(f'    Pocet SN: {count_sn if count_sn > 0 else "All SN"}')
+                    print(f'\n    Cislo boudy - P/N materialu; Description materialu; Qty/Galley; All SN Qty; Note:\n')
+                    for pn in monument_generall_material_dict:
+                        description = monument_generall_material_dict[pn]["description"]
+                        quantity = monument_generall_material_dict[pn]["quantity"]
+                        quantity_all_sn = float(quantity) * count_sn
+                        if monument_generall_material_dict[pn]["note"] == "NULL":
+                            note = "-"
+                        else:
+                            note = monument_generall_material_dict[pn]["note"]
+                        print(f'    {monument} - {pn}; {description}; {quantity}; {quantity_all_sn if quantity_all_sn >=0 else "?"}; {note}')
+                        verze_output_list.append([verze, monument, monument_type, all_sn_str, vsb, pn, description, str(quantity).replace(".",","), str(quantity_all_sn).replace(".",",") if quantity_all_sn >=0 else "?", note])
+
+                else:
+                    print(f'\n    Koren teto boudy {monument}, typ {monument_type} pro VSB {vsb} nema zadny seznam spolecneho materialu:\n')               
+                # • dale se podivat, jestli je cele cislo resene boudy ve specific monumentech BOM databaze.
+                if monument in root_id_data["Specific Monument IDs"]:
+                    # Pokud ANO → vzit take jeste material pod specific cislem boudy.
+                    monument_specific_material_dict = root_id_data["Specific Monument IDs"][monument]["material"]
+                    print(f'\n    Seznam specifickeho materialu pro koren teto boudy {monument}, typ {monument_type} pro VSB {vsb}:\n')
+                    print(f'    Pocet SN: {count_sn if count_sn > 0 else "All SN"}')
+                    print(f'\n    Cislo boudy - P/N materialu; Description materialu; Qty/Galley; All SN Qty; Note:\n')
+                    for pn in monument_specific_material_dict:
+                        description = monument_specific_material_dict[pn]["description"]
+                        quantity = monument_specific_material_dict[pn]["quantity"]
+                        quantity_all_sn = float(quantity) * count_sn
+                        if monument_specific_material_dict[pn]["note"] == "NULL":
+                            note = "-"
+                        else:
+                            note = monument_specific_material_dict[pn]["note"]
+
+                        print(f'    {monument} - {pn}; {description}; {quantity}; {quantity_all_sn if quantity_all_sn >=0 else "?"}; {note}')
+                        verze_output_list.append([verze, monument, monument_type, all_sn_str, vsb, pn, description, str(quantity).replace(".",","), str(quantity_all_sn).replace(".",",") if quantity_all_sn >=0 else "?", note])
+                else:
+                    print(f'\n    Koren teto boudy {monument}, typ {monument_type} pro VSB {vsb} nema zadny seznam specifickeho materialu:\n')
+                # 4. Pro kazdou boudu dale podle typu jejiho korene z bodu 3 ••• dohledat seznam spotrebniho materialu v consumables databazi.
+                if vsb not in consumables_databaze:
+                    print(f'    Pro VSB {vsb} neni v databazi zadny spotrebni material. Preskakuji.')
+                    continue
+                if monument_type not in consumables_databaze[vsb]["monument classes"]:
+                    print(f'    Pod VSB {vsb}, pro typ boudy {monument_type} ({monument}) neni v databazi zadny spotrebni material. Preskakuji.')
+                    continue
+                # Prirazeni odpovidajici databaze spotrebaku podle typu galley.
+                consumable_material = consumables_databaze[vsb]["monument classes"][monument_type]["material"]
+                print(f'\n    Seznam spotrebniho materialu pro boudu {monument}, typ {monument_type} pro VSB {vsb}:\n')
+                print(f'    Pocet SN: {count_sn if count_sn > 0 else "All SN"}')
+                print(f'\n    Cislo boudy - P/N materialu; Description materialu; Qty/Galley; All SN Qty; Note:\n')
+                for pn in consumable_material:
+                    description = consumable_material[pn]["description"]
+                    quantity = consumable_material[pn]["quantity"]
+                    quantity_all_sn = float(quantity) * count_sn
+                    if consumable_material[pn]["note"] == "NULL":
+                        note = "-"
+                    else:
+                        note = consumable_material[pn]["note"]
+                    print(f'    {monument} - {pn}; {description}; {quantity}; {quantity_all_sn if quantity_all_sn >=0 else "?"}; {note}')
+                    verze_output_list.append([verze, monument, monument_type, all_sn_str, vsb, pn, description, str(quantity).replace(".",","), str(quantity_all_sn).replace(".",",") if quantity_all_sn >=0 else "?", note])
+        # Po nalazeni hledane verze v EDES databazi Ukoncit prohledavani databaze (kazda verze je v databazi jen jednou.)
+        break
+
+with open("Y:\\Departments\\Sales and Marketing\\Aftersales\\11_PLANNING\\23_Python_utilities\\11_Retrofity\\Delaminace\\Pocitadlo materialu pro zakazniky\\q1_result.txt", "w", encoding="UTF-8") as o:
+    for line in verze_output_list:
+        print(line)
+        o.write("\t".join(line))
+        o.write("\n")
+
+
+
+
+
+
+
+
+
+
+                   
+         
+
+
+# 5. Pro kazdou boudu seznamy BOM materialu a spotrebniho materialu vynasobit poctem jejich SN pod danou verzi.
+# 5. B Pokud je SN All → vratit seznam mareialu z BOMu a spotrebaku + info, ze je to pro vsechnt SN cisla., ale neni mozne rict celkove mnozstvi.
+
